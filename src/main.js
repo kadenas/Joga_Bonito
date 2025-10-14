@@ -1,4 +1,4 @@
-import { upgrades, costeSiguiente, valorClick, jpsTotal, getUpgradeLevel } from './balance.js';
+import { upgradesDef, costeSiguiente, valorClick, jpsTotal, getUpgradeLevel } from './balance.js';
 import { initUI } from './ui.js';
 import { playTap, playUpgrade, setEnabled as setAudioEnabled } from './audio.js';
 import { load, save, scheduleAutosave, registerBeforeUnload, exportGame, importGame } from './save.js';
@@ -27,7 +27,7 @@ const defaultState = {
   }
 };
 
-const upgradeIds = upgrades.map((u) => u.id);
+const upgradeIds = upgradesDef.map((u) => u.id);
 let state = load(defaultState, upgradeIds);
 
 setAudioEnabled(state.settings.audio);
@@ -153,7 +153,7 @@ function frame(now) {
 requestAnimationFrame(frame);
 
 export function getTotalsForVisuals(currentState) {
-  const totalNiveles = upgrades.reduce((acc, up) => acc + getUpgradeLevel(currentState, up.id), 0);
+  const totalNiveles = upgradesDef.reduce((acc, up) => acc + getUpgradeLevel(currentState, up.id), 0);
   const barcos = Math.min(20, Math.floor(totalNiveles / 5));
   const obreros = getUpgradeLevel(currentState, 'aprendices');
   const equipo = getUpgradeLevel(currentState, 'equipo');

@@ -1,459 +1,192 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0B2C5F" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="theme-color" content="#0B2C5F"/>
+  <link rel="manifest" href="/public/manifest.webmanifest"/>
   <title>Astillero Idle</title>
-  <link rel="manifest" href="/public/manifest.webmanifest" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%230B2C5F'/%3E%3Cpath d='M10 65 L90 65 L80 35 L20 35 Z' fill='%23FF8C00'/%3E%3Crect x='25' y='50' width='50' height='12' fill='%23fff' opacity='0.6'/%3E%3C/svg%3E" />
   <style>
-    :root {
-      color-scheme: dark;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(180deg, #021327, #0B2C5F);
-      color: #f5faff;
+    :root{
+      --bg:#061e3c; --panel:#0b2c5f; --accent:#ff8c00; --ink:#e6f1ff;
+      --muted:#5f7aa1; --chip:#123867;
     }
-    body {
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-    }
-    header, footer {
-      text-align: center;
-      padding: 1rem 0.5rem;
-      background: rgba(5, 22, 48, 0.8);
-    }
-    main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      padding: 1rem;
-      max-width: 600px;
-      width: 100%;
-      margin: 0 auto;
-    }
-    h1 {
-      margin: 0;
-      font-size: 1.8rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-    .counter {
-      background: rgba(2, 19, 39, 0.6);
-      border-radius: 1rem;
-      padding: 1rem;
-      text-align: center;
-    }
-    .counter .total {
-      font-size: 2.5rem;
-      font-weight: 700;
-    }
-    button {
-      background: #FF8C00;
-      color: #011023;
-      border: none;
-      border-radius: 1rem;
-      font-size: 1.3rem;
-      padding: 1rem;
-      font-weight: 700;
-      box-shadow: 0 0.4rem 0 rgba(255, 140, 0, 0.4);
-      transition: transform 0.1s ease, box-shadow 0.1s ease;
-      touch-action: manipulation;
-    }
-    button:active {
-      transform: translateY(0.2rem);
-      box-shadow: 0 0.1rem 0 rgba(255, 140, 0, 0.4);
-    }
-    button[disabled] {
-      opacity: 0.5;
-      box-shadow: none;
-      transform: none;
-    }
-    .primary-btn {
-      font-size: 1.6rem;
-    }
-    .grid {
-      display: grid;
-      gap: 0.8rem;
-    }
-    .upgrades {
-      display: grid;
-      gap: 0.6rem;
-    }
-    .upgrade {
-      background: rgba(2, 19, 39, 0.7);
-      padding: 0.8rem;
-      border-radius: 0.8rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-    }
-    .upgrade header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      background: none;
-      padding: 0;
-    }
-    .upgrade header h3 {
-      margin: 0;
-      font-size: 1.1rem;
-    }
-    .upgrade button {
-      font-size: 1rem;
-      padding: 0.6rem;
-    }
-    .settings {
-      background: rgba(2, 19, 39, 0.6);
-      border-radius: 0.8rem;
-      padding: 1rem;
-      display: grid;
-      gap: 0.6rem;
-    }
-    .settings label {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 1rem;
-    }
-    textarea {
-      width: 100%;
-      min-height: 6rem;
-      border-radius: 0.5rem;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      background: rgba(1, 17, 35, 0.9);
-      color: #f5faff;
-      padding: 0.5rem;
-      font-family: monospace;
-    }
-    .modal {
-      position: fixed;
-      inset: 0;
-      backdrop-filter: blur(4px);
-      background: rgba(0, 0, 0, 0.65);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-      z-index: 10;
-    }
-    .modal.active {
-      display: flex;
-    }
-    .modal-content {
-      background: #031731;
-      padding: 1rem;
-      border-radius: 1rem;
-      width: min(420px, 100%);
-      display: grid;
-      gap: 0.8rem;
-    }
-    .badge {
-      font-size: 0.85rem;
-      padding: 0.2rem 0.5rem;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.15);
-    }
-    #darsena {
-      margin-top: 0.5rem;
-      display: grid;
-      gap: 1rem;
-    }
-    #darsena h2 {
-      margin: 0;
-      font-size: 1.3rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .dock {
-      background: rgba(2, 19, 39, 0.65);
-      border-radius: 1rem;
-      padding: 0.8rem;
-      display: grid;
-      gap: 0.8rem;
-    }
-    .lane {
-      display: grid;
-      gap: 0.4rem;
-    }
-    .lane-title {
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      opacity: 0.8;
-    }
-    .row {
-      position: relative;
-      height: 88px;
-      overflow-x: auto;
-      border-radius: 0.8rem;
-      background: rgba(11, 44, 95, 0.25);
-    }
-    .row .tokens {
-      position: relative;
-      display: inline-flex;
-      align-items: flex-end;
-      padding: 0.6rem;
-      min-width: 100%;
-      white-space: nowrap;
-    }
-    .row::-webkit-scrollbar {
-      height: 6px;
-    }
-    .row::-webkit-scrollbar-thumb {
-      background: rgba(230, 241, 255, 0.2);
-      border-radius: 3px;
-    }
-    .water {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(230, 241, 255, 0.15), rgba(11, 44, 95, 0.25));
-      mask: url(#waveMask) repeat-x;
-      mask-size: 256px 100%;
-      -webkit-mask: url(#waveMask) repeat-x;
-      -webkit-mask-size: 256px 100%;
-      animation: waterShift 12s linear infinite;
-      opacity: 0.18;
-      pointer-events: none;
-    }
-    .token {
-      display: inline-flex;
-      width: 64px;
-      height: 64px;
-      margin-right: 0.6rem;
-      justify-content: center;
-      align-items: center;
-      transform-origin: 50% 50%;
-    }
-    .token:last-child {
-      margin-right: 0;
-    }
-    .token svg {
-      width: 64px;
-      height: 64px;
-    }
-    .token.ship {
-      animation: bob 3.2s ease-in-out infinite;
-    }
-    .token.worker {
-      animation: bob 2.4s ease-in-out infinite;
-    }
-    .token.crane {
-      animation: tilt 5s ease-in-out infinite;
-    }
-    #summary {
-      background: rgba(2, 19, 39, 0.65);
-      border-radius: 1rem;
-      padding: 0.8rem;
-      display: grid;
-      gap: 0.6rem;
-    }
-    #summary h3 {
-      margin: 0;
-      font-size: 1rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-    .summary-grid {
-      display: flex;
-      gap: 0.6rem;
-      flex-wrap: wrap;
-    }
-    .summary-badge {
-      background: rgba(230, 241, 255, 0.1);
-      border-radius: 0.8rem;
-      padding: 0.6rem 0.8rem;
-      display: grid;
-      gap: 0.2rem;
-      min-width: 92px;
-    }
-    .summary-badge .label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      opacity: 0.7;
-    }
-    .summary-badge .value {
-      font-size: 1.3rem;
-      font-weight: 600;
-    }
-    @keyframes bob {
-      0% {
-        transform: translateY(0) rotate(0deg);
-      }
-      50% {
-        transform: translateY(-3px) rotate(-0.3deg);
-      }
-      100% {
-        transform: translateY(0) rotate(0deg);
-      }
-    }
-    @keyframes tilt {
-      0%,
-      100% {
-        transform: rotate(0deg);
-      }
-      50% {
-        transform: rotate(1deg);
-      }
-    }
-    @keyframes waterShift {
-      from {
-        background-position-x: 0;
-      }
-      to {
-        background-position-x: -256px;
-      }
-    }
-    @media (min-width: 720px) {
-      #darsena {
-        grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
-        align-items: start;
-      }
-      #summary {
-        position: sticky;
-        top: 1rem;
-        height: fit-content;
-      }
-    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 600px at 50% -20%,#103a72 0,#061e3c 60%,#051528 100%);
+         color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+         min-height:100vh;display:flex;flex-direction:column}
+    header,footer{display:flex;justify-content:center;align-items:center;padding:16px 12px}
+    header h1{letter-spacing:2px;margin:0;font-size:28px}
+    footer{font-size:14px;opacity:.7}
+    main{width:100%;max-width:900px;margin:0 auto;padding:12px 16px 48px;display:grid;gap:18px}
+    .card{background:var(--panel);border-radius:16px;padding:16px;box-shadow:0 14px 32px rgba(0,0,0,.32)}
+    #hud{text-align:center;display:grid;gap:10px}
+    #contador{font-size:40px;font-weight:800}
+    #jps{opacity:.85}
+    .meter{height:12px;border-radius:999px;background:#112f55;overflow:hidden;position:relative}
+    .meter>.bar{position:absolute;inset:0;background:linear-gradient(90deg,#ffd964 0%,var(--accent) 100%);width:0%;transition:width .2s ease}
+    #bonusText{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .btn{display:block;width:100%;padding:14px 16px;border-radius:14px;border:0;font-weight:700;font-size:18px;
+         box-shadow:0 12px 0 rgba(0,0,0,.25);cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+    .btn.primary{background:var(--accent);color:#201408}
+    .btn.secondary{background:#123867;color:var(--ink)}
+    .btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.32)}
+    .btn:disabled{opacity:.55;box-shadow:none;transform:none;cursor:not-allowed}
+    h2{margin:12px 0 0;letter-spacing:.2em;font-size:16px;text-transform:uppercase;color:var(--muted)}
+    /* Dársena */
+    #darsenaWrap{display:grid;grid-template-columns:1fr;gap:16px}
+    @media (min-width:860px){#darsenaWrap{grid-template-columns:minmax(0,2fr) minmax(200px,1fr)}}
+    #darsena{background:var(--panel);border-radius:18px;padding:16px;box-shadow:0 14px 32px rgba(0,0,0,.32);position:relative}
+    #dock{display:grid;gap:14px}
+    .row{position:relative;height:104px;border-radius:14px;background:#0f355f;overflow-x:auto;overflow-y:hidden}
+    .row .tokens{position:relative;white-space:nowrap;padding:16px 12px;display:inline-flex;align-items:flex-end}
+    .row::-webkit-scrollbar{height:6px}
+    .row::-webkit-scrollbar-thumb{background:rgba(230,241,255,.25);border-radius:3px}
+    .row .tokens::after{content:"";display:block;width:12px;height:1px}
+    .label-row{position:absolute;left:16px;top:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(230,241,255,.6)}
+    .water{position:absolute;inset:0;opacity:.18;background:linear-gradient(0deg,rgba(255,255,255,.0) 0%,rgba(255,255,255,.2) 100%);
+      mask:radial-gradient(60px 12px at 0 60%,#000 98%,transparent 102%) repeat-x;animation:waterShift 14s linear infinite;pointer-events:none}
+    .token{display:inline-flex;width:64px;height:64px;margin:0 10px;justify-content:center;align-items:center;transform-origin:32px 48px}
+    .token:first-child{margin-left:0}
+    .token svg{width:64px;height:64px}
+    .ship{animation:bob 3.2s ease-in-out infinite}
+    .worker{animation:bob 2.2s ease-in-out infinite}
+    .crane{animation:tilt 4s ease-in-out infinite}
+    .summary{background:var(--panel);border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(0,0,0,.32);display:grid;gap:12px;height:fit-content}
+    .summary h3{margin:0;font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:rgba(230,241,255,.7)}
+    .badge{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;background:#102f57;border-radius:14px;padding:12px 14px}
+    .badge .k{font-size:20px;font-weight:700;color:#bcd1f6}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--chip);font-size:12px;
+          letter-spacing:.08em;text-transform:uppercase;color:rgba(230,241,255,.85)}
+    /* Paneles secundarios */
+    .panel{background:var(--panel);border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(0,0,0,.32)}
+    .upgrades{display:grid;gap:14px}
+    .upgrade{background:#102f57;border-radius:16px;padding:14px;display:grid;gap:10px}
+    .upgrade header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+    .upgrade header h3{margin:0;font-size:16px}
+    .upgrade header .badge{background:#123867;padding:6px 10px;font-size:12px;border-radius:999px;display:inline-flex;grid-template-columns:none;gap:6px}
+    .upgrade p{margin:0;font-size:14px;color:rgba(230,241,255,.8)}
+    .upgrade .btn{display:inline-flex;align-items:center;justify-content:center;width:auto;justify-self:end;padding:10px 16px;
+      font-size:15px;box-shadow:0 8px 0 rgba(0,0,0,.2)}
+    .settings{display:grid;gap:12px}
+    .settings h2{margin:0;font-size:16px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+    .settings label{display:flex;justify-content:space-between;align-items:center;background:#102f57;padding:12px 16px;border-radius:14px;font-size:14px}
+    .settings .grid{display:grid;gap:10px}
+    textarea{width:100%;min-height:140px;border-radius:12px;border:1px solid rgba(230,241,255,.25);background:#071a33;color:var(--ink);padding:12px;font-family:monospace}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,7,16,.72);backdrop-filter:blur(4px);padding:16px;z-index:30}
+    .modal.active{display:flex}
+    .modal-content{background:#091b36;border-radius:18px;padding:20px;display:grid;gap:12px;max-width:420px;width:100%}
+    @keyframes bob{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-.3deg)}100%{transform:translateY(0) rotate(0)}}
+    @keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.2deg)}}
+    @keyframes waterShift{from{background-position-x:0}to{background-position-x:-260px}}
   </style>
 </head>
 <body>
-  <svg id="sprite-defs" width="0" height="0" aria-hidden="true" focusable="false">
-    <defs>
-      <symbol id="ship-hull" viewBox="0 0 64 64">
-        <path d="M6 36h52l-5 14c-1.5 4.2-5.5 7-10 7H21c-4.5 0-8.5-2.8-10-7L6 36z" fill="#FF8C00" />
-        <path d="M12 42h40l-2 6H14l-2-6z" fill="#0B2C5F" />
-        <path d="M20 46h24" stroke="#E6F1FF" stroke-width="2" stroke-linecap="round" opacity="0.8" />
-      </symbol>
-      <symbol id="ship-cabin" viewBox="0 0 64 64">
-        <rect x="18" y="18" width="28" height="16" rx="4" fill="#E6F1FF" />
-        <rect x="22" y="22" width="6" height="6" rx="1" fill="#0B2C5F" opacity="0.8" />
-        <rect x="36" y="22" width="6" height="6" rx="1" fill="#0B2C5F" opacity="0.8" />
-      </symbol>
-      <symbol id="ship-mast" viewBox="0 0 64 64">
-        <rect x="30" y="8" width="4" height="24" rx="2" fill="#E6F1FF" opacity="0.9" />
-        <path d="M32 10l12 12-12 6z" fill="#0B2C5F" opacity="0.85" />
-      </symbol>
-      <symbol id="crane" viewBox="0 0 64 64">
-        <rect x="10" y="44" width="16" height="10" rx="2" fill="#0B2C5F" />
-        <rect x="14" y="20" width="8" height="24" rx="3" fill="#FF8C00" />
-        <path d="M18 20l26-10 2 6-18 6v22" fill="none" stroke="#E6F1FF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
-        <path d="M40 16l10 8" stroke="#0B2C5F" stroke-width="3" stroke-linecap="round" />
-        <path d="M46 30v8" stroke="#0B2C5F" stroke-width="3" stroke-linecap="round" />
-        <path d="M46 40c0 2.2-1.8 4-4 4s-4-1.8-4-4" fill="none" stroke="#FF8C00" stroke-width="2" />
-      </symbol>
-      <symbol id="worker" viewBox="0 0 64 64">
-        <circle cx="32" cy="18" r="8" fill="#E6F1FF" />
-        <rect x="24" y="12" width="16" height="6" rx="3" fill="#FF8C00" />
-        <rect x="22" y="28" width="20" height="22" rx="6" fill="#0B2C5F" />
-        <rect x="18" y="30" width="6" height="16" rx="3" fill="#FF8C00" />
-        <rect x="40" y="30" width="6" height="16" rx="3" fill="#FF8C00" />
-        <path d="M18 30l-6-4" stroke="#E6F1FF" stroke-width="3" stroke-linecap="round" />
-        <path d="M44 30l8-4" stroke="#E6F1FF" stroke-width="3" stroke-linecap="round" />
-      </symbol>
-      <symbol id="wave" viewBox="0 0 64 16">
-        <path d="M0 8c4 0 6-4 10-4s6 4 10 4 6-4 10-4 6 4 10 4 6-4 10-4 6 4 10 4v8H0z" fill="#fff" />
-      </symbol>
-      <pattern id="wavePattern" patternUnits="userSpaceOnUse" width="64" height="16">
-        <use href="#wave" />
-      </pattern>
-      <mask id="waveMask">
-        <rect width="100%" height="100%" fill="url(#wavePattern)" />
-      </mask>
-    </defs>
-  </svg>
-  <header>
-    <h1>Astillero Idle</h1>
-  </header>
+  <header><h1>ASTILLERO IDLE</h1></header>
   <main>
-    <section class="counter" aria-live="polite">
-      <div class="total" id="jornalesDisplay">0</div>
-      <div id="jpsDisplay">0 Jornales/s</div>
-      <div class="badge" id="bonusStatus">Marea viva lista</div>
+    <section class="card" id="hud">
+      <div id="contador" aria-live="polite">0</div>
+      <div id="jps">0 Jornales/s</div>
+      <div class="meter" aria-hidden="true"><div class="bar" id="bonusBar"></div></div>
+      <div id="bonusText">Marea viva lista</div>
     </section>
-    <div class="grid">
-      <button id="tapButton" class="primary-btn">Remachar casco</button>
-      <button id="bonusButton">Marea viva</button>
-    </div>
-    <section id="darsena" aria-labelledby="darsena-title">
-      <h2 id="darsena-title">Dársena</h2>
-      <div class="dock">
-        <div class="lane" data-lane="barcos">
-          <span class="lane-title">Barcos en reparación</span>
-          <div class="row" data-row="barcos">
+    <button class="btn primary" id="btnTap">Remachar casco</button>
+    <button class="btn secondary" id="btnBonus">Marea viva</button>
+
+    <h2>DÁRSENA</h2>
+    <div id="darsenaWrap">
+      <section id="darsena" aria-labelledby="dock-title">
+        <h3 id="dock-title" style="position:absolute;left:-9999px;top:auto">Estado visual del astillero</h3>
+        <div class="dock" id="dock">
+          <div class="row" id="row-barcos" role="group" aria-label="Barcos en reparación">
+            <span class="label-row">Barcos en reparación</span>
             <div class="water" aria-hidden="true"></div>
-            <div class="tokens" role="list" aria-live="polite" aria-label="Barcos en reparación"></div>
+            <div class="tokens" role="list"></div>
+          </div>
+          <div class="row" id="row-obreros" role="group" aria-label="Aprendices en el muelle">
+            <span class="label-row">Aprendices</span>
+            <div class="water" aria-hidden="true"></div>
+            <div class="tokens" role="list"></div>
+          </div>
+          <div class="row" id="row-gruas" role="group" aria-label="Grúas y equipo">
+            <span class="label-row">Grúas y equipo</span>
+            <div class="water" aria-hidden="true"></div>
+            <div class="tokens" role="list"></div>
           </div>
         </div>
-        <div class="lane" data-lane="obreros">
-          <span class="lane-title">Aprendices</span>
-          <div class="row" data-row="obreros">
-            <div class="water" aria-hidden="true"></div>
-            <div class="tokens" role="list" aria-live="polite" aria-label="Aprendices"></div>
-          </div>
-        </div>
-        <div class="lane" data-lane="gruas">
-          <span class="lane-title">Grúas y equipo</span>
-          <div class="row" data-row="gruas">
-            <div class="water" aria-hidden="true"></div>
-            <div class="tokens" role="list" aria-live="polite" aria-label="Grúas y equipo"></div>
-          </div>
-        </div>
-      </div>
-      <aside id="summary" aria-labelledby="summary-title">
+      </section>
+      <aside class="summary" aria-labelledby="summary-title">
         <h3 id="summary-title">Resumen del astillero</h3>
-        <div class="summary-grid">
-          <div class="summary-badge" data-summary="barcos">
-            <span class="label">Barcos</span>
-            <span class="value">0</span>
-          </div>
-          <div class="summary-badge" data-summary="obreros">
-            <span class="label">Obreros</span>
-            <span class="value">0</span>
-          </div>
-          <div class="summary-badge" data-summary="gruas">
-            <span class="label">Grúas</span>
-            <span class="value">0</span>
-          </div>
-        </div>
+        <div class="badge"><span>Barcos</span><span class="k" id="sum-barcos">0</span></div>
+        <div class="badge"><span>Obreros</span><span class="k" id="sum-obreros">0</span></div>
+        <div class="badge"><span>Grúas</span><span class="k" id="sum-gruas">0</span></div>
       </aside>
+    </div>
+
+    <section class="panel">
+      <h2 style="margin-top:0">Mejoras</h2>
+      <div class="upgrades" id="upgradesList" aria-live="polite" aria-label="Mejoras disponibles"></div>
     </section>
-    <section class="upgrades" id="upgradesList" aria-label="Mejoras disponibles"></section>
-    <section class="settings">
+
+    <section class="panel settings">
       <h2>Ajustes</h2>
-      <label>
-        Audio
-        <input type="checkbox" id="audioToggle" checked />
-      </label>
-      <label>
-        Vibración
-        <input type="checkbox" id="vibrationToggle" checked />
-      </label>
+      <label>Audio <input type="checkbox" id="audioToggle" checked></label>
+      <label>Vibración <input type="checkbox" id="vibrationToggle" checked></label>
       <div class="grid">
-        <button id="exportButton">Exportar progreso</button>
-        <button id="importButton">Importar progreso</button>
+        <button class="btn secondary" id="exportButton" type="button">Exportar progreso</button>
+        <button class="btn secondary" id="importButton" type="button">Importar progreso</button>
       </div>
     </section>
   </main>
-  <footer>
-    Versión 0.1.0 — Mantén el astillero en marcha
-  </footer>
-  <div class="modal" id="modal">
+  <footer>v1.1.0 — Dársena SVG animada</footer>
+
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
     <div class="modal-content">
-      <h3 id="modalTitle">Exportar</h3>
+      <h3 id="modalTitle">Exportar progreso</h3>
       <textarea id="modalTextarea" readonly></textarea>
-      <div class="grid">
-        <button id="modalCopy">Copiar</button>
-        <button id="modalClose">Cerrar</button>
+      <div class="grid" style="display:grid;gap:10px">
+        <button class="btn secondary" id="modalCopy" type="button">Copiar</button>
+        <button class="btn secondary" id="modalClose" type="button">Cerrar</button>
       </div>
     </div>
   </div>
+
+  <svg id="sprite-defs" width="0" height="0" aria-hidden="true" style="position:absolute">
+    <defs>
+      <linearGradient id="hullGrad" x1="0" x2="0" y1="0" y2="1">
+        <stop offset="0%" stop-color="#FF9A1A"/>
+        <stop offset="100%" stop-color="#FF8C00"/>
+      </linearGradient>
+    </defs>
+    <symbol id="ship-hull" viewBox="0 0 64 64">
+      <path d="M6 42 L58 42 L52 52 L12 52 Z" fill="url(#hullGrad)" stroke="#0B2C5F" stroke-width="2"/>
+      <rect x="10" y="48" width="44" height="4" fill="#0B2C5F"/>
+    </symbol>
+    <symbol id="ship-cabin" viewBox="0 0 64 64">
+      <rect x="24" y="30" width="16" height="10" rx="2" fill="#E6F1FF" stroke="#0B2C5F" stroke-width="2"/>
+      <circle cx="30" cy="35" r="1.5" fill="#0B2C5F"/>
+      <circle cx="34" cy="35" r="1.5" fill="#0B2C5F"/>
+      <circle cx="38" cy="35" r="1.5" fill="#0B2C5F"/>
+    </symbol>
+    <symbol id="ship-mast" viewBox="0 0 64 64">
+      <rect x="31" y="18" width="2" height="16" fill="#0B2C5F"/>
+      <path d="M33 18 L48 28 L33 28 Z" fill="#E6F1FF" stroke="#0B2C5F" stroke-width="1"/>
+    </symbol>
+    <symbol id="crane" viewBox="0 0 64 64">
+      <rect x="8" y="40" width="10" height="12" fill="#0B2C5F"/>
+      <rect x="13" y="20" width="4" height="20" fill="#0B2C5F"/>
+      <rect x="17" y="22" width="28" height="4" fill="#0B2C5F"/>
+      <rect x="40" y="24" width="2" height="14" fill="#0B2C5F"/>
+      <circle cx="41" cy="40" r="2" fill="#FF8C00"/>
+    </symbol>
+    <symbol id="worker" viewBox="0 0 64 64">
+      <circle cx="24" cy="24" r="6" fill="#E6F1FF" stroke="#0B2C5F" stroke-width="2"/>
+      <rect x="18" y="30" width="12" height="14" rx="3" fill="#0B2C5F"/>
+      <rect x="30" y="32" width="14" height="4" fill="#0B2C5F"/>
+      <rect x="42" y="20" width="6" height="6" fill="#FF8C00"/>
+    </symbol>
+  </svg>
+
   <script type="module" src="/src/main.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

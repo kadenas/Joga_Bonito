@@ -50,13 +50,13 @@ assets/
 
 ## Capa visual (Dársena)
 
-La sección **Dársena** del `index.html` añade una representación tipo idle game de la actividad del astillero. Los elementos visuales son SVG inline reutilizados mediante símbolos definidos en `#sprite-defs`, evitando la carga de binarios externos.
+La sección **DÁRSENA** del `index.html` añade una representación tipo idle game de la actividad del astillero. Los elementos visuales son SVG inline reutilizados mediante símbolos definidos en `#sprite-defs`, evitando la carga de binarios externos y permitiendo animaciones ligeras.
 
-- **Barcos en reparación**: aparece un barco por cada 5 niveles combinados de mejoras, hasta 20.
+- **Barcos en reparación**: aparece un barco por cada 5 niveles combinados de todas las mejoras (`Math.floor(total / 5)`), con un máximo de 20 unidades.
 - **Aprendices**: muestra un obrero por nivel de la mejora `aprendices`.
-- **Grúas y equipo**: genera una grúa por cada 3 niveles sumados entre `equipo de remachado` y `capataz veterano`.
+- **Grúas y equipo**: genera una grúa por cada 3 niveles sumados entre `equipo de remachado` y `capataz veterano` (`Math.floor((equipo + capataz) / 3)`).
 
-Cada carril es horizontalmente desplazable en pantallas pequeñas y cuenta con un fondo animado de agua. El panel lateral **Resumen del astillero** resume los totales con contadores sincronizados. Para extender la Dársena añade nuevos símbolos SVG y usa `renderTokens` en `src/ui.js` para pintar las filas sin repintados completos.
+Las cifras se calculan en `getTotalsForVisuals` (`src/main.js`), apoyándose en el helper `getUpgradeLevel` de `src/balance.js`. Cada carril es horizontalmente desplazable en pantallas pequeñas y cuenta con un fondo animado de agua, mientras que el panel lateral **Resumen del astillero** muestra los totales sincronizados. Para extender la Dársena añade nuevos símbolos SVG y usa `renderTokens` en `src/ui.js` para pintar las filas sin repintados completos.
 
 ## Rendimiento y futuras mejoras
 
