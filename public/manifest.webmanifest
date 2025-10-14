@@ -1,0 +1,9 @@
+{
+  "name": "Astillero Idle",
+  "short_name": "Astillero",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0B2C5F",
+  "background_color": "#021327"
+}
