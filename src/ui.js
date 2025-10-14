@@ -1,4 +1,4 @@
-import { upgrades, costeSiguiente, valorClick, jpsTotal } from './balance.js';
+import { upgradesDef, costeSiguiente, valorClick, jpsTotal } from './balance.js';
 import { unlockOnInteraction } from './audio.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -19,9 +19,9 @@ export function initDarsena() {
     return darsenaState;
   }
   const rows = {
-    barcos: section.querySelector('[data-row="barcos"] .tokens'),
-    obreros: section.querySelector('[data-row="obreros"] .tokens'),
-    gruas: section.querySelector('[data-row="gruas"] .tokens')
+    barcos: document.querySelector('#row-barcos .tokens'),
+    obreros: document.querySelector('#row-obreros .tokens'),
+    gruas: document.querySelector('#row-gruas .tokens')
   };
   Object.values(rows).forEach((row) => {
     if (!row) return;
@@ -33,9 +33,9 @@ export function initDarsena() {
     }
   });
   const summary = {
-    barcos: section.querySelector('[data-summary="barcos"] .value'),
-    obreros: section.querySelector('[data-summary="obreros"] .value'),
-    gruas: section.querySelector('[data-summary="gruas"] .value')
+    barcos: document.getElementById('sum-barcos'),
+    obreros: document.getElementById('sum-obreros'),
+    gruas: document.getElementById('sum-gruas')
   };
   darsenaState.initialized = true;
   darsenaState.rows = rows;
@@ -191,11 +191,12 @@ function describeUpgrade(upgrade, nivel) {
 
 export function initUI(initialState, callbacks) {
   const state = initialState;
-  const jornalesDisplay = document.getElementById('jornalesDisplay');
-  const jpsDisplay = document.getElementById('jpsDisplay');
-  const tapButton = document.getElementById('tapButton');
-  const bonusButton = document.getElementById('bonusButton');
-  const bonusStatus = document.getElementById('bonusStatus');
+  const jornalesDisplay = document.getElementById('contador');
+  const jpsDisplay = document.getElementById('jps');
+  const tapButton = document.getElementById('btnTap');
+  const bonusButton = document.getElementById('btnBonus');
+  const bonusBar = document.getElementById('bonusBar');
+  const bonusStatus = document.getElementById('bonusText');
   const upgradesList = document.getElementById('upgradesList');
   const audioToggle = document.getElementById('audioToggle');
   const vibrationToggle = document.getElementById('vibrationToggle');
@@ -209,124 +210,168 @@ export function initUI(initialState, callbacks) {
 
   initDarsena();
 
-  unlockOnInteraction(tapButton);
+  if (tapButton) {
+    unlockOnInteraction(tapButton);
+  }
 
   let modalMode = null;
 
   const upgradeElements = new Map();
-  upgradesList.innerHTML = '';
-  for (const upgrade of upgrades) {
-    const article = document.createElement('article');
-    article.className = 'upgrade';
-    const header = document.createElement('header');
-    const title = document.createElement('h3');
-    title.textContent = upgrade.nombre;
-    const level = document.createElement('span');
-    level.className = 'badge';
-    level.textContent = 'Nivel 0';
-    header.appendChild(title);
-    header.appendChild(level);
-    const desc = document.createElement('p');
-    desc.textContent = describeUpgrade(upgrade, 0);
-    const cost = document.createElement('button');
-    cost.type = 'button';
-    cost.textContent = `Comprar (${formatNumber(costeSiguiente(upgrade.id, 0))})`;
-    cost.addEventListener('click', () => callbacks.onBuyUpgrade(upgrade.id));
-    article.appendChild(header);
-    article.appendChild(desc);
-    article.appendChild(cost);
-    upgradesList.appendChild(article);
-    upgradeElements.set(upgrade.id, { article, level, desc, cost });
+  if (upgradesList) {
+    upgradesList.innerHTML = '';
+    for (const upgrade of upgradesDef) {
+      const article = document.createElement('article');
+      article.className = 'upgrade';
+      const header = document.createElement('header');
+      const title = document.createElement('h3');
+      title.textContent = upgrade.nombre;
+      const level = document.createElement('span');
+      level.className = 'chip';
+      level.textContent = 'Nivel 0';
+      header.appendChild(title);
+      header.appendChild(level);
+      const desc = document.createElement('p');
+      desc.textContent = describeUpgrade(upgrade, 0);
+      const cost = document.createElement('button');
+      cost.type = 'button';
+      cost.className = 'btn secondary';
+      cost.textContent = `Comprar (${formatNumber(costeSiguiente(upgrade.id, 0))})`;
+      cost.addEventListener('click', () => callbacks.onBuyUpgrade(upgrade.id));
+      article.appendChild(header);
+      article.appendChild(desc);
+      article.appendChild(cost);
+      upgradesList.appendChild(article);
+      upgradeElements.set(upgrade.id, { article, level, desc, cost });
+    }
   }
 
   function handleTap() {
     callbacks.onTap();
   }
 
-  tapButton.addEventListener('pointerdown', handleTap, { passive: true });
-  tapButton.addEventListener('click', handleTap);
+  if (tapButton) {
+    tapButton.addEventListener('pointerdown', handleTap, { passive: true });
+    tapButton.addEventListener('click', handleTap);
+  }
 
-  bonusButton.addEventListener('click', () => callbacks.onBonus());
+  if (bonusButton) {
+    bonusButton.addEventListener('click', () => callbacks.onBonus());
+  }
 
-  audioToggle.checked = state.settings.audio;
-  audioToggle.addEventListener('change', () => {
-    callbacks.onToggleAudio(audioToggle.checked);
-  });
+  if (audioToggle) {
+    audioToggle.checked = state.settings.audio;
+    audioToggle.addEventListener('change', () => {
+      callbacks.onToggleAudio(audioToggle.checked);
+    });
+  }
 
-  vibrationToggle.checked = state.settings.vibrate;
-  vibrationToggle.addEventListener('change', () => {
-    callbacks.onToggleVibration(vibrationToggle.checked);
-  });
+  if (vibrationToggle) {
+    vibrationToggle.checked = state.settings.vibrate;
+    vibrationToggle.addEventListener('change', () => {
+      callbacks.onToggleVibration(vibrationToggle.checked);
+    });
+  }
 
-  exportButton.addEventListener('click', () => {
-    const data = callbacks.onExport();
-    showExportModal(data);
-  });
+  if (exportButton) {
+    exportButton.addEventListener('click', () => {
+      const data = callbacks.onExport();
+      showExportModal(data);
+    });
+  }
 
-  importButton.addEventListener('click', () => {
-    showImportModal();
-  });
+  if (importButton) {
+    importButton.addEventListener('click', () => {
+      showImportModal();
+    });
+  }
 
-  modalCopy.addEventListener('click', () => {
-    if (modalMode === 'export') {
-      const text = modalTextarea.value;
-      if (navigator.clipboard && text) {
-        navigator.clipboard.writeText(text).then(() => {
-          modalCopy.textContent = 'Copiado';
-          setTimeout(() => (modalCopy.textContent = 'Copiar'), 1200);
-        });
+  if (modalCopy) {
+    modalCopy.addEventListener('click', () => {
+      if (modalMode === 'export') {
+        const text = modalTextarea.value;
+        if (navigator.clipboard && text) {
+          navigator.clipboard.writeText(text).then(() => {
+            modalCopy.textContent = 'Copiado';
+            setTimeout(() => (modalCopy.textContent = 'Copiar'), 1200);
+          });
+        }
+      } else if (modalMode === 'import') {
+        try {
+          callbacks.onImport(modalTextarea.value.trim());
+          closeModal();
+        } catch (err) {
+          window.alert(err.message);
+        }
       }
-    } else if (modalMode === 'import') {
-      try {
-        callbacks.onImport(modalTextarea.value.trim());
-        closeModal();
-      } catch (err) {
-        window.alert(err.message);
-      }
-    }
-  });
+    });
+  }
 
-  modalClose.addEventListener('click', closeModal);
+  if (modalClose) {
+    modalClose.addEventListener('click', closeModal);
+  }
 
   function showModal() {
+    if (!modal) return;
     modal.classList.add('active');
-    modalTextarea.focus();
+    if (modalTextarea) {
+      modalTextarea.focus();
+    }
   }
 
   function closeModal() {
+    if (!modal) return;
     modal.classList.remove('active');
     modalMode = null;
-    modalTextarea.value = '';
-    modalTextarea.readOnly = false;
-    modalCopy.textContent = 'Copiar';
+    if (modalTextarea) {
+      modalTextarea.value = '';
+      modalTextarea.readOnly = false;
+    }
+    if (modalCopy) {
+      modalCopy.textContent = 'Copiar';
+    }
   }
 
   function showExportModal(text) {
     modalMode = 'export';
-    modalTitle.textContent = 'Exportar progreso';
-    modalTextarea.value = text;
-    modalTextarea.readOnly = true;
-    modalCopy.textContent = 'Copiar';
+    if (modalTitle) modalTitle.textContent = 'Exportar progreso';
+    if (modalTextarea) {
+      modalTextarea.value = text;
+      modalTextarea.readOnly = true;
+    }
+    if (modalCopy) modalCopy.textContent = 'Copiar';
     showModal();
   }
 
   function showImportModal() {
     modalMode = 'import';
-    modalTitle.textContent = 'Importar progreso';
-    modalTextarea.value = '';
-    modalTextarea.readOnly = false;
-    modalTextarea.placeholder = 'Pega aquí tu JSON de guardado';
-    modalCopy.textContent = 'Importar';
+    if (modalTitle) modalTitle.textContent = 'Importar progreso';
+    if (modalTextarea) {
+      modalTextarea.value = '';
+      modalTextarea.readOnly = false;
+      modalTextarea.placeholder = 'Pega aquí tu JSON de guardado';
+    }
+    if (modalCopy) modalCopy.textContent = 'Importar';
     showModal();
   }
 
   function updateBonusUI(bonus) {
+    if (bonusBar) {
+      const total = bonus.cooldownMax + bonus.duration;
+      let pct = 100;
+      if (bonus.active) {
+        pct = 100;
+      } else if (bonus.cooldown > 0 && total > 0) {
+        pct = 100 - Math.floor((bonus.cooldown / total) * 100);
+      }
+      bonusBar.style.width = `${Math.max(0, Math.min(100, pct))}%`;
+    }
+    if (!bonusStatus || !bonusButton) return;
     if (bonus.active) {
-      bonusStatus.textContent = `Marea viva activa: ${(bonus.remaining / 1000).toFixed(1)}s`;
+      bonusStatus.textContent = `Marea viva activa (${(bonus.remaining / 1000).toFixed(1)}s)`;
       bonusButton.disabled = false;
       bonusButton.textContent = 'Marea viva activa';
     } else if (bonus.cooldown > 0) {
-      bonusStatus.textContent = `En enfriamiento: ${(bonus.cooldown / 1000).toFixed(0)}s`;
+      bonusStatus.textContent = `Marea en enfriamiento (${Math.ceil(bonus.cooldown / 1000)}s)`;
       bonusButton.disabled = true;
       bonusButton.textContent = 'Marea viva (CD)';
     } else {
@@ -341,11 +386,17 @@ export function initUI(initialState, callbacks) {
     const clickValue = valorClick(nextState) * (nextState.bonus.active ? nextState.bonus.multiplier : 1);
     const baseJps = jpsTotal(nextState);
     const totalJps = baseJps * (nextState.bonus.active ? nextState.bonus.multiplier : 1);
-    jornalesDisplay.textContent = format(nextState.jornales);
-    jpsDisplay.textContent = `${format(totalJps)} Jornales/s`;
-    tapButton.textContent = `Remachar casco (+${format(clickValue)})`;
+    if (jornalesDisplay) {
+      jornalesDisplay.textContent = format(nextState.jornales);
+    }
+    if (jpsDisplay) {
+      jpsDisplay.textContent = `${format(totalJps)} Jornales/s`;
+    }
+    if (tapButton) {
+      tapButton.textContent = `Remachar casco (+${format(clickValue)})`;
+    }
     updateBonusUI(nextState.bonus);
-    for (const up of upgrades) {
+    for (const up of upgradesDef) {
       const els = upgradeElements.get(up.id);
       if (!els) continue;
       const nivel = nextState.upgrades[up.id] || 0;
@@ -355,9 +406,15 @@ export function initUI(initialState, callbacks) {
       els.cost.textContent = `Comprar (${format(cost)})`;
       els.cost.disabled = nextState.jornales < cost;
     }
-    audioToggle.checked = nextState.settings.audio;
-    vibrationToggle.checked = nextState.settings.vibrate;
+    if (audioToggle) {
+      audioToggle.checked = nextState.settings.audio;
+    }
+    if (vibrationToggle) {
+      vibrationToggle.checked = nextState.settings.vibrate;
+    }
   }
+
+  updateBonusUI(state.bonus);
 
   return {
     render,
