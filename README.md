@@ -43,10 +43,20 @@ src/
   audio.js          # Síntesis WebAudio y control de audio
   save.js           # Guardado local, autosave y exportación
   balance.js        # Definición de mejoras y fórmulas
-sw.js                # Service worker cache-first
+  sw.js             # Service worker cache-first
 assets/
   README.txt        # Información sobre futuros assets
 ```
+
+## Capa visual (Dársena)
+
+La sección **Dársena** del `index.html` añade una representación tipo idle game de la actividad del astillero. Los elementos visuales son SVG inline reutilizados mediante símbolos definidos en `#sprite-defs`, evitando la carga de binarios externos.
+
+- **Barcos en reparación**: aparece un barco por cada 5 niveles combinados de mejoras, hasta 20.
+- **Aprendices**: muestra un obrero por nivel de la mejora `aprendices`.
+- **Grúas y equipo**: genera una grúa por cada 3 niveles sumados entre `equipo de remachado` y `capataz veterano`.
+
+Cada carril es horizontalmente desplazable en pantallas pequeñas y cuenta con un fondo animado de agua. El panel lateral **Resumen del astillero** resume los totales con contadores sincronizados. Para extender la Dársena añade nuevos símbolos SVG y usa `renderTokens` en `src/ui.js` para pintar las filas sin repintados completos.
 
 ## Rendimiento y futuras mejoras
 
