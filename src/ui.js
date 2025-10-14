@@ -1,6 +1,148 @@
 import { upgrades, costeSiguiente, valorClick, jpsTotal } from './balance.js';
 import { unlockOnInteraction } from './audio.js';
 
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const XLINK_NS = 'http://www.w3.org/1999/xlink';
+
+const darsenaState = {
+  initialized: false,
+  rows: {},
+  summary: {}
+};
+
+export function initDarsena() {
+  if (darsenaState.initialized) {
+    return darsenaState;
+  }
+  const section = document.getElementById('darsena');
+  if (!section) {
+    return darsenaState;
+  }
+  const rows = {
+    barcos: section.querySelector('[data-row="barcos"] .tokens'),
+    obreros: section.querySelector('[data-row="obreros"] .tokens'),
+    gruas: section.querySelector('[data-row="gruas"] .tokens')
+  };
+  Object.values(rows).forEach((row) => {
+    if (!row) return;
+    const wrapper = row.parentElement;
+    if (wrapper && !wrapper.querySelector('.water')) {
+      const water = document.createElement('div');
+      water.className = 'water';
+      wrapper.insertBefore(water, row);
+    }
+  });
+  const summary = {
+    barcos: section.querySelector('[data-summary="barcos"] .value'),
+    obreros: section.querySelector('[data-summary="obreros"] .value'),
+    gruas: section.querySelector('[data-summary="gruas"] .value')
+  };
+  darsenaState.initialized = true;
+  darsenaState.rows = rows;
+  darsenaState.summary = summary;
+  return darsenaState;
+}
+
+export function renderTokens(container, count, createTokenFn) {
+  if (!container) return;
+  const current = container.children.length;
+  if (current > count) {
+    for (let i = current - 1; i >= count; i -= 1) {
+      container.removeChild(container.children[i]);
+    }
+  } else if (current < count) {
+    const fragment = document.createDocumentFragment();
+    for (let i = current; i < count; i += 1) {
+      fragment.appendChild(createTokenFn(i));
+    }
+    container.appendChild(fragment);
+  }
+}
+
+export function createShipToken(index) {
+  const token = document.createElement('div');
+  token.className = 'token ship';
+  token.setAttribute('role', 'listitem');
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 64 64');
+  svg.innerHTML = `
+    <use href="#ship-hull"></use>
+    <use href="#ship-cabin"></use>
+    <use href="#ship-mast"></use>
+  `;
+  syncUseReferences(svg);
+  token.appendChild(svg);
+  const duration = (2.8 + Math.random() * 0.7).toFixed(2);
+  const delay = (-Math.random() * duration).toFixed(2);
+  token.style.animationDuration = `${duration}s`;
+  token.style.animationDelay = `${delay}s`;
+  if (index % 2) {
+    token.style.animationDirection = 'alternate';
+  }
+  return token;
+}
+
+export function createWorkerToken(index) {
+  const token = document.createElement('div');
+  token.className = 'token worker';
+  token.setAttribute('role', 'listitem');
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 64 64');
+  svg.innerHTML = `
+    <use href="#worker"></use>
+  `;
+  syncUseReferences(svg);
+  token.appendChild(svg);
+  const duration = (1.9 + Math.random() * 0.6).toFixed(2);
+  const delay = (-Math.random() * duration).toFixed(2);
+  token.style.animationDuration = `${duration}s`;
+  token.style.animationDelay = `${delay}s`;
+  if (index % 2) {
+    token.style.animationDirection = 'alternate';
+  }
+  return token;
+}
+
+export function createCraneToken(index) {
+  const token = document.createElement('div');
+  token.className = 'token crane';
+  token.setAttribute('role', 'listitem');
+  const svg = document.createElementNS(SVG_NS, 'svg');
+  svg.setAttribute('viewBox', '0 0 64 64');
+  svg.innerHTML = `
+    <use href="#crane"></use>
+  `;
+  syncUseReferences(svg);
+  token.appendChild(svg);
+  const duration = (4 + Math.random() * 1.5).toFixed(2);
+  const delay = (-Math.random() * duration).toFixed(2);
+  token.style.animationDuration = `${duration}s`;
+  token.style.animationDelay = `${delay}s`;
+  token.style.animationDirection = index % 2 ? 'alternate-reverse' : 'alternate';
+  return token;
+}
+
+export function updateDarsena(totals = { barcos: 0, obreros: 0, gruas: 0 }) {
+  const current = initDarsena();
+  const { rows, summary } = current;
+  renderTokens(rows.barcos, totals.barcos || 0, createShipToken);
+  renderTokens(rows.obreros, totals.obreros || 0, createWorkerToken);
+  renderTokens(rows.gruas, totals.gruas || 0, createCraneToken);
+  if (summary.barcos) summary.barcos.textContent = String(totals.barcos || 0);
+  if (summary.obreros) summary.obreros.textContent = String(totals.obreros || 0);
+  if (summary.gruas) summary.gruas.textContent = String(totals.gruas || 0);
+}
+
+function syncUseReferences(svg) {
+  const uses = svg.querySelectorAll('use');
+  uses.forEach((node) => {
+    const href = node.getAttribute('href');
+    if (href) {
+      node.setAttributeNS(XLINK_NS, 'xlink:href', href);
+    }
+  });
+}
+
 function formatNumber(value, notation = 'abbr') {
   if (!Number.isFinite(value)) return '0';
   if (value === 0) return '0';
@@ -64,6 +206,8 @@ export function initUI(initialState, callbacks) {
   const modalTextarea = document.getElementById('modalTextarea');
   const modalCopy = document.getElementById('modalCopy');
   const modalClose = document.getElementById('modalClose');
+
+  initDarsena();
 
   unlockOnInteraction(tapButton);
 
@@ -217,6 +361,7 @@ export function initUI(initialState, callbacks) {
 
   return {
     render,
-    closeModal
+    closeModal,
+    updateDarsena
   };
 }

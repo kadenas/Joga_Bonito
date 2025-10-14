@@ -17,6 +17,12 @@ export function costeSiguiente(id, nivel) {
   return data.baseCoste * Math.pow(factorCoste, nivel);
 }
 
+export function getUpgradeLevel(state, id) {
+  if (!state) return 0;
+  const upgradesState = state.upgrades || {};
+  return upgradesState[id] || 0;
+}
+
 export function valorClick(state) {
   let base = state.baseClick || 1;
   let additive = 0;

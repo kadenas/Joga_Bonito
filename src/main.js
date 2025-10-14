@@ -1,4 +1,4 @@
-import { upgrades, costeSiguiente, valorClick, jpsTotal } from './balance.js';
+import { upgrades, costeSiguiente, valorClick, jpsTotal, getUpgradeLevel } from './balance.js';
 import { initUI } from './ui.js';
 import { playTap, playUpgrade, setEnabled as setAudioEnabled } from './audio.js';
 import { load, save, scheduleAutosave, registerBeforeUnload, exportGame, importGame } from './save.js';
@@ -60,6 +60,7 @@ registerBeforeUnload(() => state);
 let lastFrame = performance.now();
 let tickAccumulator = 0;
 const TICK_MS = 100;
+let lastVisualSignature = null;
 
 function applyImportedState(source) {
   const keepKeys = new Set(Object.keys(defaultState));
@@ -72,6 +73,7 @@ function applyImportedState(source) {
       state[key] = source[key];
     }
   }
+  lastVisualSignature = null;
 }
 
 function handleTap() {
@@ -139,7 +141,23 @@ function frame(now) {
     tickAccumulator -= TICK_MS;
   }
   ui.render(state);
+  const totals = getTotalsForVisuals(state);
+  const signature = `${totals.barcos}|${totals.obreros}|${totals.gruas}`;
+  if (signature !== lastVisualSignature) {
+    ui.updateDarsena(totals);
+    lastVisualSignature = signature;
+  }
   requestAnimationFrame(frame);
 }
 
 requestAnimationFrame(frame);
+
+export function getTotalsForVisuals(currentState) {
+  const totalNiveles = upgrades.reduce((acc, up) => acc + getUpgradeLevel(currentState, up.id), 0);
+  const barcos = Math.min(20, Math.floor(totalNiveles / 5));
+  const obreros = getUpgradeLevel(currentState, 'aprendices');
+  const equipo = getUpgradeLevel(currentState, 'equipo');
+  const capataz = getUpgradeLevel(currentState, 'capataz');
+  const gruas = Math.floor((equipo + capataz) / 3);
+  return { barcos, obreros, gruas };
+}
