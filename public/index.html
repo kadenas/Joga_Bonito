@@ -4,7 +4,7 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#0B2C5F"/>
-  <link rel="manifest" href="/public/manifest.webmanifest"/>
+  <link rel="manifest" href="/manifest.webmanifest"/>
   <title>Astillero Idle</title>
   <style>
     :root{
@@ -187,12 +187,12 @@
     </symbol>
   </svg>
 
-  <script type="module" src="/src/main.js"></script>
+  <!-- Carga del entrypoint como módulo con versión para evitar caché SW -->
+  <script type="module" src="/src/main.js?v=4"></script>
   <script>
+    // Registro del SW (si falla, no bloquea el juego)
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js').catch(console.error);
-      });
+      navigator.serviceWorker.register('/sw.js?v=4').catch(()=>{});
     }
   </script>
 </body>

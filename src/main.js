@@ -1,163 +1,99 @@
-import { upgradesDef, costeSiguiente, valorClick, jpsTotal, getUpgradeLevel } from './balance.js';
-import { initUI } from './ui.js';
-import { playTap, playUpgrade, setEnabled as setAudioEnabled } from './audio.js';
-import { load, save, scheduleAutosave, registerBeforeUnload, exportGame, importGame } from './save.js';
+import * as ui from './ui.js';
+import { upgradesDef, jpsTotal, valorClick, getUpgradeLevel } from './balance.js';
 
-const defaultState = {
+// Estado básico (si ya existe, conserva tus campos)
+export const state = window.__STATE__ || {
   jornales: 0,
   jornalesPerSec: 0,
   baseClick: 1,
-  upgrades: {},
-  bonus: {
-    active: false,
-    remaining: 0,
-    cooldown: 0,
-    duration: 30000,
-    cooldownMax: 120000,
-    multiplier: 2
-  },
-  totals: {
-    taps: 0,
-    acumulados: 0
-  },
-  settings: {
-    audio: true,
-    vibrate: true,
-    notation: 'abbr'
-  }
+  upgrades: upgradesDef.map(u=>({id:u.id, nivel:0})),
+  bonus: { active:false, remaining:0, cooldown:0, duration:30000, cooldownMax:120000, multiplier:2 },
+  totals: { taps:0, acumulados:0 },
+  settings: { audio:true, vibrate:true, notation:"abbr" }
 };
 
-const upgradeIds = upgradesDef.map((u) => u.id);
-let state = load(defaultState, upgradeIds);
-
-setAudioEnabled(state.settings.audio);
-
-const ui = initUI(state, {
-  onTap: handleTap,
-  onBonus: activateBonus,
-  onBuyUpgrade: buyUpgrade,
-  onToggleAudio: (value) => {
-    state.settings.audio = value;
-    setAudioEnabled(value);
-    save(state);
-  },
-  onToggleVibration: (value) => {
-    state.settings.vibrate = value;
-    save(state);
-  },
-  onExport: () => exportGame(state),
-  onImport: (text) => {
-    if (!text) throw new Error('No se ha pegado ningún dato');
-    const imported = importGame(text, defaultState, upgradeIds);
-    applyImportedState(imported);
-    save(state);
-  }
-});
-
-scheduleAutosave(() => state);
-registerBeforeUnload(() => state);
-
-let lastFrame = performance.now();
-let tickAccumulator = 0;
-const TICK_MS = 100;
-let lastVisualSignature = null;
-
-function applyImportedState(source) {
-  const keepKeys = new Set(Object.keys(defaultState));
-  for (const key of keepKeys) {
-    if (key === 'upgrades') {
-      state.upgrades = { ...source.upgrades };
-    } else if (key === 'bonus' || key === 'totals' || key === 'settings') {
-      state[key] = { ...source[key] };
-    } else {
-      state[key] = source[key];
-    }
-  }
-  lastVisualSignature = null;
-}
-
-function handleTap() {
-  const multiplier = state.bonus.active ? state.bonus.multiplier : 1;
-  const gain = valorClick(state) * multiplier;
+// Lógica de juego
+export function doTap(){
+  let gain = valorClick(state);
+  if (state.bonus.active) gain *= state.bonus.multiplier;
   state.jornales += gain;
-  state.totals.acumulados += gain;
-  state.totals.taps += 1;
-  if (state.settings.audio) {
-    playTap();
+  state.totals.taps++;
+}
+export function toggleBonus(){
+  if (!state.bonus.active && state.bonus.cooldown<=0){
+    state.bonus.active = true;
+    state.bonus.remaining = state.bonus.duration;
+    state.bonus.cooldown = state.bonus.cooldownMax + state.bonus.duration;
   }
-  if (state.settings.vibrate && navigator.vibrate) {
-    navigator.vibrate(30);
+}
+export function buyUpgrade(id){
+  const def = upgradesDef.find(u=>u.id===id);
+  const u = state.upgrades.find(x=>x.id===id);
+  const cost = Math.floor(def.baseCoste * Math.pow(1.12, u.nivel));
+  if (state.jornales >= cost){
+    state.jornales -= cost;
+    u.nivel++;
+    _lastSig = ''; // fuerza redibujar dársena
   }
 }
 
-function buyUpgrade(id) {
-  const nivel = state.upgrades[id] || 0;
-  const coste = costeSiguiente(id, nivel);
-  if (state.jornales < coste) return;
-  state.jornales -= coste;
-  state.upgrades[id] = nivel + 1;
-  if (state.settings.audio) {
-    playUpgrade();
-  }
-  save(state);
+// Totales para la dársena
+export function getTotalsForVisuals(s){
+  const sumNiveles = (s.upgrades||[]).reduce((a,u)=>a+(u.nivel||0),0);
+  const barcos = Math.min(20, Math.floor(sumNiveles/5));
+  const obreros = getUpgradeLevel(s, 'aprendices');
+  const gruas = Math.floor((getUpgradeLevel(s,'equipo') + getUpgradeLevel(s,'capataz'))/3);
+  return { barcos, obreros, gruas };
 }
 
-function activateBonus() {
-  if (state.bonus.active) return;
-  if (state.bonus.cooldown > 0) return;
-  state.bonus.active = true;
-  state.bonus.remaining = state.bonus.duration;
-  state.bonus.cooldown = state.bonus.cooldownMax + state.bonus.duration;
-}
+// Bucle principal
+let _lastSig = '';
+let _prev = performance.now();
+function frame(now){
+  const dt = now - _prev; _prev = now;
 
-function processTick(delta) {
-  const bonus = state.bonus;
-  if (bonus.active) {
-    bonus.remaining = Math.max(0, bonus.remaining - delta);
-    if (bonus.remaining === 0) {
-      bonus.active = false;
-    }
+  if (state.bonus.active){
+    state.bonus.remaining -= dt;
+    if (state.bonus.remaining<=0){ state.bonus.active=false; state.bonus.remaining=0; }
   }
-  if (bonus.cooldown > 0) {
-    bonus.cooldown = Math.max(0, bonus.cooldown - delta);
+  if (state.bonus.cooldown>0){
+    state.bonus.cooldown -= dt;
+    if (state.bonus.cooldown<0) state.bonus.cooldown=0;
   }
 
-  const baseJps = jpsTotal(state);
-  const multiplier = bonus.active ? bonus.multiplier : 1;
-  state.jornalesPerSec = baseJps * multiplier;
-  const gain = state.jornalesPerSec * (delta / 1000);
-  if (gain > 0) {
-    state.jornales += gain;
-    state.totals.acumulados += gain;
-  }
-}
+  state.jornalesPerSec = jpsTotal(state) * (state.bonus.active ? state.bonus.multiplier : 1);
+  state.jornales += state.jornalesPerSec * (dt/1000);
 
-function frame(now) {
-  const delta = now - lastFrame;
-  lastFrame = now;
-  tickAccumulator += delta;
-  while (tickAccumulator >= TICK_MS) {
-    processTick(TICK_MS);
-    tickAccumulator -= TICK_MS;
+  // HUD
+  ui.renderHUD?.(state);
+
+  // Dársena
+  const t = getTotalsForVisuals(state);
+  const sig = `${t.barcos}|${t.obreros}|${t.gruas}`;
+  if (sig !== _lastSig){
+    ui.updateDarsena?.(t);
+    _lastSig = sig;
   }
-  ui.render(state);
-  const totals = getTotalsForVisuals(state);
-  const signature = `${totals.barcos}|${totals.obreros}|${totals.gruas}`;
-  if (signature !== lastVisualSignature) {
-    ui.updateDarsena(totals);
-    lastVisualSignature = signature;
-  }
+
   requestAnimationFrame(frame);
 }
 
-requestAnimationFrame(frame);
+// Bootstrap seguro: engancha listeners cuando el DOM existe
+window.addEventListener('DOMContentLoaded', ()=>{
+  ui.initUI?.();
+  ui.initDarsena?.();
 
-export function getTotalsForVisuals(currentState) {
-  const totalNiveles = upgradesDef.reduce((acc, up) => acc + getUpgradeLevel(currentState, up.id), 0);
-  const barcos = Math.min(20, Math.floor(totalNiveles / 5));
-  const obreros = getUpgradeLevel(currentState, 'aprendices');
-  const equipo = getUpgradeLevel(currentState, 'equipo');
-  const capataz = getUpgradeLevel(currentState, 'capataz');
-  const gruas = Math.floor((equipo + capataz) / 3);
-  return { barcos, obreros, gruas };
-}
+  const btnTap = document.getElementById('btnTap');
+  const btnBonus = document.getElementById('btnBonus');
+  btnTap?.addEventListener('click', ()=>{ doTap(); ui.renderHUD?.(state); }, {passive:true});
+  btnBonus?.addEventListener('click', ()=>{ toggleBonus(); }, {passive:true});
+
+  // Primera pintura
+  ui.renderHUD?.(state);
+  ui.updateDarsena?.(getTotalsForVisuals(state));
+
+  requestAnimationFrame(frame);
+});
+
+// Exponer para depurar en consola
+window.Astillero = { state, doTap, buyUpgrade, toggleBonus };
