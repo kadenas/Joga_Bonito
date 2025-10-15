@@ -283,10 +283,14 @@ export function initTapBoat(){
 
   const handlePointer = (evt)=>{
     if (evt.button !== undefined && evt.button !== 0) return;
-    evt.preventDefault();
+    evt.stopPropagation?.();
+    evt.preventDefault?.();
     const count = 10 + Math.floor(Math.random()*11);
     spawnParticles(evt, count);
     doTap();
+    if (state.settings?.vibrate !== false && navigator.vibrate){
+      try { navigator.vibrate(12); } catch (err) { /* ignore */ }
+    }
     $tapBoat.classList.add('pop');
     clearTimeout(_popTimer);
     _popTimer = window.setTimeout(()=>{
@@ -300,6 +304,9 @@ export function initTapBoat(){
       const count = 10 + Math.floor(Math.random()*11);
       spawnParticles(null, count);
       doTap();
+      if (state.settings?.vibrate !== false && navigator.vibrate){
+        try { navigator.vibrate(12); } catch (err) { /* ignore */ }
+      }
       $tapBoat.classList.add('pop');
       clearTimeout(_popTimer);
       _popTimer = window.setTimeout(()=>{
@@ -308,7 +315,11 @@ export function initTapBoat(){
     }
   };
 
-  $tapBoat.addEventListener('pointerdown', handlePointer);
+  if (window.PointerEvent){
+    $tapBoat.addEventListener('pointerdown', handlePointer);
+  } else {
+    $tapBoat.addEventListener('click', handlePointer);
+  }
   $tapBoat.addEventListener('keydown', handleKey);
 }
 

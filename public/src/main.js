@@ -42,6 +42,7 @@ audio.setEnabled(state.settings.audio);
 export function doTap(){
   let gain = valorClick(state);
   if (state.bonus.active) gain *= state.bonus.multiplier;
+  gain *= state.bonus.permaMult ?? 1;
   state.jornales += gain;
   state.totals.taps++;
   const prog = state.achievements?.progress;
