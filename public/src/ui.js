@@ -1,6 +1,11 @@
+import { upgradesDef, costeSiguiente, getUpgradeLevel } from './balance.js';
+import { buyUpgrade } from './main.js';
+
 // HUD mínimo; si ya tienes más UI, conserva y añade estos refs
 let $contador,$jps,$bonusBar,$bonusText;
 let $rowBarcos,$rowObreros,$rowGruas,$sumBarcos,$sumObreros,$sumGruas;
+let $shopList;
+let _shopSig = '';
 
 export function initUI(){
   $contador = document.getElementById('contador');
@@ -18,6 +23,50 @@ export function renderHUD(s){
   const pct = s.bonus.active ? 100 : (cd>0 ? 100 - Math.floor((cd/total)*100) : 100);
   if ($bonusBar) $bonusBar.style.width = pct + '%';
   if ($bonusText) $bonusText.textContent = s.bonus.active ? 'Marea viva activa' : (cd>0 ? 'Marea en enfriamiento' : 'Marea viva lista');
+}
+
+/* ---------- TIENDA ---------- */
+export function mountShop(){
+  $shopList = document.getElementById('shopList');
+  $shopList?.addEventListener('click', (event)=>{
+    const btn = event.target.closest('button.buy');
+    if (!btn) return;
+    const id = btn.dataset.id;
+    if (!id) return;
+    buyUpgrade(id);
+  }, { passive: true });
+}
+
+export function invalidateShop(){
+  _shopSig = '';
+}
+
+export function renderShop(state){
+  if (!$shopList) return;
+  const sig = upgradesDef.map((def)=>`${def.id}:${getUpgradeLevel(state, def.id)}`).join('|') + '|' + Math.floor(state.jornales);
+  if (sig === _shopSig) return;
+  _shopSig = sig;
+
+  const html = upgradesDef.map((def)=>{
+    const nivel = getUpgradeLevel(state, def.id);
+    const coste = costeSiguiente(def, nivel);
+    const afford = state.jornales >= coste;
+    const desc = def.desc || '';
+    return `
+      <div class="item" data-id="${def.id}">
+        <div>
+          <h3>${def.nombre} <span class="level">Nivel ${nivel}</span></h3>
+          <p>${desc}</p>
+        </div>
+        <div class="row2">
+          <div class="price">Coste ${fmt(coste)}</div>
+          <button class="buy" data-id="${def.id}" ${afford ? '' : 'disabled'}>Comprar</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  $shopList.innerHTML = html;
 }
 
 // Dársena

@@ -1,5 +1,5 @@
 // Simple cache-first SW
-const CACHE_NAME = 'astillero-v5'; // subir versión para invalidar caché viejo
+const CACHE_NAME = 'astillero-v6'; // subir versión para invalidar caché viejo
 const ASSETS = [
   '/',
   '/index.html',
