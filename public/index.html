@@ -36,9 +36,9 @@
     /* Dársena */
     #darsenaWrap{display:grid;grid-template-columns:1fr;gap:16px}
     @media (min-width:860px){#darsenaWrap{grid-template-columns:minmax(0,2fr) minmax(200px,1fr)}}
-    #darsena{background:var(--panel);border-radius:18px;padding:16px;box-shadow:0 14px 32px rgba(0,0,0,.32);position:relative}
-    #dock{display:grid;gap:14px;position:relative;z-index:0}
-    .row{position:relative;height:104px;border-radius:14px;background:#0f355f;overflow-x:auto;overflow-y:hidden;z-index:0}
+    #darsena{background:var(--panel);border-radius:18px;padding:16px;box-shadow:0 14px 32px rgba(0,0,0,.32);position:relative;z-index:1}
+    #dock{display:grid;gap:14px;position:relative;z-index:1}
+    .row{position:relative;height:104px;border-radius:14px;background:#0f355f;overflow-x:auto;overflow-y:hidden;z-index:1}
     .row .tokens{position:relative;white-space:nowrap;padding:16px 12px;display:inline-flex;align-items:flex-end}
     .row::-webkit-scrollbar{height:6px}
     .row::-webkit-scrollbar-thumb{background:rgba(230,241,255,.25);border-radius:3px}
@@ -199,11 +199,11 @@
   </svg>
 
   <!-- Carga del entrypoint como módulo con versión para evitar caché SW -->
-  <script type="module" src="/src/main.js?v=8"></script>
+  <script type="module" src="/src/main.js?v=9"></script>
   <script>
     // Registro del SW (si falla, no bloquea el juego)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=8').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=9').catch(()=>{});
     }
   </script>
 </body>

@@ -1,10 +1,12 @@
 import { upgradesDef, costeSiguiente, getUpgradeLevel } from './balance.js';
+import { buyUpgrade } from './main.js';
 
 // HUD mínimo; si ya tienes más UI, conserva y añade estos refs
 let $contador,$jps,$bonusBar,$bonusText;
 let $rowBarcos,$rowObreros,$rowGruas,$sumBarcos,$sumObreros,$sumGruas;
 let $shopList;
 let _shopSig = '';
+let _lastRenderMs = 0;
 
 export function initUI(){
   $contador = document.getElementById('contador');
@@ -35,6 +37,10 @@ export function invalidateShop(){
 
 export function renderShop(state){
   if (!$shopList) return;
+  const now = performance.now();
+  if (now - _lastRenderMs < 250) return;
+  _lastRenderMs = now;
+
   const sig = upgradesDef.map((def)=>`${def.id}:${getUpgradeLevel(state, def.id)}`).join('|') + '|' + Math.floor(state.jornales);
   if (sig === _shopSig) return;
   _shopSig = sig;
@@ -52,13 +58,26 @@ export function renderShop(state){
         </div>
         <div class="row2">
           <div class="price">Coste ${fmt(coste)}</div>
-          <button type="button" class="buy" data-id="${def.id}" ${afford ? '' : 'disabled'} onclick="Astillero.buyUpgrade('${def.id}')">Comprar</button>
+          <button type="button" class="buy" data-id="${def.id}" ${afford ? '' : 'disabled'} onclick="window.Astillero && Astillero.buyUpgrade && Astillero.buyUpgrade('${def.id}')">Comprar</button>
         </div>
       </div>
     `;
   }).join('');
 
   $shopList.innerHTML = html;
+
+  $shopList.querySelectorAll('button.buy').forEach((btn)=>{
+    btn.addEventListener('click', (ev)=>{
+      if (btn.disabled) return;
+      const id = btn.dataset.id;
+      try {
+        buyUpgrade(id);
+      } catch (err) {
+        console.error(err);
+      }
+      ev.stopPropagation();
+    });
+  });
 }
 
 // Dársena
