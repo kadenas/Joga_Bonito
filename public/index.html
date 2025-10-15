@@ -9,36 +9,84 @@
   <style>
     :root{
       --bg:#061e3c; --panel:#0b2c5f; --accent:#ff8c00; --ink:#e6f1ff;
-      --muted:#5f7aa1; --chip:#123867;
+      --muted:#5f7aa1; --chip:#123867; --safe-bottom:env(view-inset-bottom, env(safe-area-inset-bottom, 0px));
     }
     *{box-sizing:border-box}
-    body{margin:0;background:radial-gradient(1200px 600px at 50% -20%,#103a72 0,#061e3c 60%,#051528 100%);
-         color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
-         min-height:100vh;display:flex;flex-direction:column}
-    header,footer{display:flex;justify-content:center;align-items:center;padding:16px 12px}
-    header h1{letter-spacing:2px;margin:0;font-size:28px}
-    footer{font-size:14px;opacity:.7}
-    main{width:100%;max-width:900px;margin:0 auto;padding:12px 16px 48px;display:grid;gap:18px}
-    .card{background:var(--panel);border-radius:16px;padding:16px;box-shadow:0 14px 32px rgba(0,0,0,.32)}
-    #hud{text-align:center;display:grid;gap:10px}
-    #contador{font-size:40px;font-weight:800}
-    #jps{opacity:.85}
-    .meter{height:12px;border-radius:999px;background:#112f55;overflow:hidden;position:relative}
-    .meter>.bar{position:absolute;inset:0;background:linear-gradient(90deg,#ffd964 0%,var(--accent) 100%);width:0%;transition:width .2s ease}
-    #bonusText{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-    .btn{display:block;width:100%;padding:14px 16px;border-radius:14px;border:0;font-weight:700;font-size:18px;
-         box-shadow:0 12px 0 rgba(0,0,0,.25);cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
-    .btn.primary{background:var(--accent);color:#201408}
-    .btn.secondary{background:#123867;color:var(--ink)}
-    .btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.32)}
-    .btn:disabled{opacity:.55;box-shadow:none;transform:none;cursor:not-allowed}
-    h2{margin:12px 0 0;letter-spacing:.2em;font-size:16px;text-transform:uppercase;color:var(--muted)}
-    /* Dársena */
-    #darsenaWrap{display:grid;grid-template-columns:1fr;gap:16px}
-    @media (min-width:860px){#darsenaWrap{grid-template-columns:minmax(0,2fr) minmax(200px,1fr)}}
-    #darsena{background:var(--panel);border-radius:18px;padding:16px;box-shadow:0 14px 32px rgba(0,0,0,.32);position:relative;z-index:1}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 600px at 50% -20%,#103a72 0,#061e3c 60%,#051528 100%);
+      color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      padding-top:env(view-inset-top, env(safe-area-inset-top, 0px));
+      padding-left:env(view-inset-left, env(safe-area-inset-left, 0px));
+      padding-right:env(view-inset-right, env(safe-area-inset-right, 0px));
+      padding-bottom:calc(96px + var(--safe-bottom));
+    }
+    header,footer{display:flex;justify-content:center;align-items:center;padding:18px 16px 12px}
+    header h1{letter-spacing:0.28em;margin:0;font-size:clamp(18px,5vw,32px)}
+    footer{font-size:clamp(12px,3vw,15px);opacity:.7;padding-top:24px}
+    main{flex:1;width:100%;max-width:960px;margin:0 auto;padding:20px 16px 24px;display:flex;flex-direction:column;gap:20px}
+    .card{background:var(--panel);border-radius:20px;padding:18px;box-shadow:0 16px 34px rgba(0,0,0,.36)}
+    #hud{display:grid;gap:16px;justify-items:center;text-align:center;padding:28px 18px 36px}
+    #contador{font-size:clamp(28px,7vw,44px);font-weight:800}
+    #jps{opacity:.9;font-size:clamp(14px,3.8vw,18px)}
+    .meter{width:100%;height:14px;border-radius:999px;background:#112f55;overflow:hidden;position:relative}
+    .meter>.bar{position:absolute;inset:0;background:linear-gradient(90deg,#ffd964 0%,var(--accent) 100%);width:0%;transition:width .25s ease}
+    #bonusText{font-size:clamp(12px,3.2vw,15px);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    #tapBoat{
+      position:relative;
+      width:clamp(120px,36vw,220px);
+      aspect-ratio:1;
+      border:0;
+      border-radius:50%;
+      background:radial-gradient(circle at 50% 45%,rgba(230,241,255,.18) 0,rgba(11,44,95,.8) 70%,rgba(4,16,35,.85) 100%);
+      box-shadow:0 18px 40px rgba(0,0,0,.45);
+      display:grid;
+      place-items:center;
+      cursor:pointer;
+      animation:bobTap 4s ease-in-out infinite;
+      transition:transform .18s ease;
+      touch-action:manipulation;
+    }
+    #tapBoat:focus-visible{outline:3px solid rgba(255,255,255,.6);outline-offset:6px}
+    #tapBoat svg{width:68%;height:68%;transition:transform .2s ease}
+    #tapBoat.pop{animation:none;transform:translateY(2px) rotate(-1.5deg)}
+    #tapBoat.pop svg{animation:popPitch .2s ease forwards}
+    #tapFx{position:absolute;inset:0;pointer-events:none;overflow:visible}
+    .particle{
+      position:absolute;
+      width:6px;height:6px;
+      border-radius:2px;
+      background:#FF8C00;
+      box-shadow:0 0 0 1px #0B2C5F inset;
+      pointer-events:none;
+      animation:fly 700ms ease-out forwards;
+    }
+    details{
+      background:var(--panel);
+      border-radius:20px;
+      box-shadow:0 16px 34px rgba(0,0,0,.32);
+      overflow:hidden;
+    }
+    details>summary{
+      padding:18px 22px;
+      font-size:clamp(16px,4.4vw,20px);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(230,241,255,.85);
+      cursor:pointer;
+      list-style:none;
+    }
+    details>summary::-webkit-details-marker{display:none}
+    details[open]>summary{border-bottom:1px solid rgba(230,241,255,.12)}
+    .panel-body{padding:20px 22px;display:grid;gap:20px}
+    #darsenaWrap{display:grid;gap:16px}
+    #darsena{background:#0f355f;border-radius:18px;padding:16px;box-shadow:inset 0 0 0 1px rgba(230,241,255,.12);position:relative}
     #dock{display:grid;gap:14px;position:relative;z-index:1}
-    .row{position:relative;height:104px;border-radius:14px;background:#0f355f;overflow-x:auto;overflow-y:hidden;z-index:1}
+    .row{position:relative;height:104px;border-radius:16px;background:#0f355f;overflow-x:auto;overflow-y:hidden;z-index:1}
     .row .tokens{position:relative;white-space:nowrap;padding:16px 12px;display:inline-flex;align-items:flex-end}
     .row::-webkit-scrollbar{height:6px}
     .row::-webkit-scrollbar-thumb{background:rgba(230,241,255,.25);border-radius:3px}
@@ -52,32 +100,12 @@
     .ship{animation:bob 3.2s ease-in-out infinite}
     .worker{animation:bob 2.2s ease-in-out infinite}
     .crane{animation:tilt 4s ease-in-out infinite}
-    .summary{background:var(--panel);border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(0,0,0,.32);display:grid;gap:12px;height:fit-content}
+    .summary{background:#102f57;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(0,0,0,.32);display:grid;gap:12px;height:fit-content}
     .summary h3{margin:0;font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:rgba(230,241,255,.7)}
-    .badge{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;background:#102f57;border-radius:14px;padding:12px 14px}
+    .badge{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;background:#123867;border-radius:14px;padding:12px 14px}
     .badge .k{font-size:20px;font-weight:700;color:#bcd1f6}
-    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--chip);font-size:12px;
-          letter-spacing:.08em;text-transform:uppercase;color:rgba(230,241,255,.85)}
-    /* Paneles secundarios */
-    .panel{background:var(--panel);border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(0,0,0,.32)}
-    .upgrades{display:grid;gap:14px}
-    .upgrade{background:#102f57;border-radius:16px;padding:14px;display:grid;gap:10px}
-    .upgrade header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
-    .upgrade header h3{margin:0;font-size:16px}
-    .upgrade header .badge{background:#123867;padding:6px 10px;font-size:12px;border-radius:999px;display:inline-flex;grid-template-columns:none;gap:6px}
-    .upgrade p{margin:0;font-size:14px;color:rgba(230,241,255,.8)}
-    .upgrade .btn{display:inline-flex;align-items:center;justify-content:center;width:auto;justify-self:end;padding:10px 16px;
-      font-size:15px;box-shadow:0 8px 0 rgba(0,0,0,.2)}
-    .settings{display:grid;gap:12px}
-    .settings h2{margin:0;font-size:16px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-    .settings label{display:flex;justify-content:space-between;align-items:center;background:#102f57;padding:12px 16px;border-radius:14px;font-size:14px}
-    .settings .grid{display:grid;gap:10px}
-    textarea{width:100%;min-height:140px;border-radius:12px;border:1px solid rgba(230,241,255,.25);background:#071a33;color:var(--ink);padding:12px;font-family:monospace}
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,7,16,.72);backdrop-filter:blur(4px);padding:16px;z-index:30}
-    .modal.active{display:flex}
-    .modal-content{background:#091b36;border-radius:18px;padding:20px;display:grid;gap:12px;max-width:420px;width:100%}
-    .shop{background:var(--panel);border-radius:14px;padding:16px;box-shadow:0 12px 24px rgba(0,0,0,.28);display:grid;gap:12px;position:relative;z-index:1000}
-    .shop *{pointer-events:auto;}
+    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--chip);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,241,255,.85)}
+    .shop{background:#102f57;border-radius:16px;padding:18px;display:grid;gap:14px}
     .shop h2{margin:0;font-size:16px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
     .item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#0f355f;padding:12px;border-radius:12px}
     .item h3{margin:0;font-size:16px}
@@ -87,9 +115,68 @@
     .buy[disabled]{opacity:.4;filter:grayscale(40%);cursor:not-allowed;box-shadow:none}
     .level{opacity:.8;font-size:12px;font-weight:600;margin-left:6px}
     .row2{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+    .settings{display:grid;gap:12px;background:var(--panel);border-radius:20px;padding:22px;box-shadow:0 16px 34px rgba(0,0,0,.32)}
+    .settings h2{margin:0;font-size:clamp(16px,4vw,20px);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+    .settings label{display:flex;justify-content:space-between;align-items:center;background:#102f57;padding:12px 16px;border-radius:14px;font-size:clamp(14px,3.6vw,16px)}
+    .settings .grid{display:grid;gap:10px}
+    textarea{width:100%;min-height:140px;border-radius:12px;border:1px solid rgba(230,241,255,.25);background:#071a33;color:var(--ink);padding:12px;font-family:monospace}
+    .btn{display:block;width:100%;padding:14px 16px;border-radius:14px;border:0;font-weight:700;font-size:18px;
+      box-shadow:0 12px 0 rgba(0,0,0,.25);cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+    .btn.secondary{background:#123867;color:var(--ink)}
+    .btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.32)}
+    .btn:disabled{opacity:.55;box-shadow:none;transform:none;cursor:not-allowed}
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,7,16,.72);backdrop-filter:blur(4px);padding:16px;z-index:30}
+    .modal.active{display:flex}
+    .modal-content{background:#091b36;border-radius:18px;padding:20px;display:grid;gap:12px;max-width:420px;width:100%}
+    #bottomBar{
+      position:fixed;
+      left:0;right:0;
+      bottom:var(--safe-bottom);
+      background:rgba(4,18,36,.88);
+      backdrop-filter:blur(18px);
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      padding:12px 16px calc(12px + var(--safe-bottom));
+      box-shadow:0 -8px 24px rgba(0,0,0,.45);
+      z-index:40;
+    }
+    .nav-btn{
+      border:0;
+      border-radius:14px;
+      padding:12px 10px;
+      font-weight:700;
+      font-size:clamp(14px,4vw,16px);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      background:linear-gradient(180deg,#ffb347 0%,var(--accent) 100%);
+      color:#201408;
+      box-shadow:0 10px 0 rgba(0,0,0,.35);
+      cursor:pointer;
+      transition:transform .12s ease,box-shadow .12s ease;
+    }
+    .nav-btn:nth-child(2){background:linear-gradient(180deg,#77a4ff 0%,#2853b5 100%);color:#e6f1ff}
+    .nav-btn:nth-child(3){background:linear-gradient(180deg,#7affd9 0%,#1f8a76 100%);color:#04121f}
+    .nav-btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.35)}
+    @keyframes bobTap{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+    @keyframes popPitch{0%{transform:rotate(0) scale(1)}70%{transform:rotate(-6deg) scale(.96)}100%{transform:rotate(0) scale(1)}}
+    @keyframes fly{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx), calc(-1 * var(--dy))) rotate(var(--rot))}}
     @keyframes bob{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-.3deg)}100%{transform:translateY(0) rotate(0)}}
     @keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.2deg)}}
     @keyframes waterShift{from{background-position-x:0}to{background-position-x:-260px}}
+    @media (min-width:768px){
+      body{padding-bottom:calc(96px + var(--safe-bottom));}
+      main{padding:24px 24px 32px;gap:24px}
+      #hud{grid-template-columns:repeat(2,1fr);align-items:center;text-align:left;justify-items:flex-start;padding:32px}
+      #hud .meter{grid-column:1/3}
+      #hud #bonusText{grid-column:1/3;text-align:center}
+      #tapBoat{justify-self:center}
+      #darsenaWrap{grid-template-columns:minmax(0,2fr) minmax(200px,1fr)}
+      #bottomBar{grid-template-columns:repeat(3,minmax(0,180px));justify-content:center;padding-left:48px;padding-right:48px}
+    }
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+    }
   </style>
 </head>
 <body>
@@ -98,48 +185,63 @@
     <section class="card" id="hud">
       <div id="contador" aria-live="polite">0</div>
       <div id="jps">0 Jornales/s</div>
+      <button id="tapBoat" aria-label="Remachar casco" type="button">
+        <svg viewBox="0 0 96 96" aria-hidden="true" focusable="false">
+          <use href="#ship-hull"></use>
+          <use href="#ship-cabin"></use>
+          <use href="#ship-mast"></use>
+        </svg>
+        <div id="tapFx" aria-hidden="true"></div>
+      </button>
       <div class="meter" aria-hidden="true"><div class="bar" id="bonusBar"></div></div>
       <div id="bonusText">Marea viva lista</div>
     </section>
-    <button class="btn primary" id="btnTap">Remachar casco</button>
-    <button class="btn secondary" id="btnBonus">Marea viva</button>
 
-    <h2>DÁRSENA</h2>
-    <div id="darsenaWrap">
-      <section id="darsena" aria-labelledby="dock-title">
-        <h3 id="dock-title" style="position:absolute;left:-9999px;top:auto">Estado visual del astillero</h3>
-        <div class="dock" id="dock">
-          <div class="row" id="row-barcos" role="group" aria-label="Barcos en reparación">
-            <span class="label-row">Barcos en reparación</span>
-            <div class="water" aria-hidden="true"></div>
-            <div class="tokens" role="list"></div>
-          </div>
-          <div class="row" id="row-obreros" role="group" aria-label="Aprendices en el muelle">
-            <span class="label-row">Aprendices</span>
-            <div class="water" aria-hidden="true"></div>
-            <div class="tokens" role="list"></div>
-          </div>
-          <div class="row" id="row-gruas" role="group" aria-label="Grúas y equipo">
-            <span class="label-row">Grúas y equipo</span>
-            <div class="water" aria-hidden="true"></div>
-            <div class="tokens" role="list"></div>
-          </div>
+    <details id="dockPanel">
+      <summary>Dársena</summary>
+      <div class="panel-body">
+        <div id="darsenaWrap">
+          <section id="darsena" aria-labelledby="dock-title">
+            <h3 id="dock-title" style="position:absolute;left:-9999px;top:auto">Estado visual del astillero</h3>
+            <div class="dock" id="dock">
+              <div class="row" id="row-barcos" role="group" aria-label="Barcos en reparación">
+                <span class="label-row">Barcos en reparación</span>
+                <div class="water" aria-hidden="true"></div>
+                <div class="tokens" role="list"></div>
+              </div>
+              <div class="row" id="row-obreros" role="group" aria-label="Aprendices en el muelle">
+                <span class="label-row">Aprendices</span>
+                <div class="water" aria-hidden="true"></div>
+                <div class="tokens" role="list"></div>
+              </div>
+              <div class="row" id="row-gruas" role="group" aria-label="Grúas y equipo">
+                <span class="label-row">Grúas y equipo</span>
+                <div class="water" aria-hidden="true"></div>
+                <div class="tokens" role="list"></div>
+              </div>
+            </div>
+          </section>
+          <aside class="summary" aria-labelledby="summary-title">
+            <h3 id="summary-title">Resumen del astillero</h3>
+            <div class="badge"><span>Barcos</span><span class="k" id="sum-barcos">0</span></div>
+            <div class="badge"><span>Obreros</span><span class="k" id="sum-obreros">0</span></div>
+            <div class="badge"><span>Grúas</span><span class="k" id="sum-gruas">0</span></div>
+          </aside>
         </div>
-      </section>
-      <aside class="summary" aria-labelledby="summary-title">
-        <h3 id="summary-title">Resumen del astillero</h3>
-        <div class="badge"><span>Barcos</span><span class="k" id="sum-barcos">0</span></div>
-        <div class="badge"><span>Obreros</span><span class="k" id="sum-obreros">0</span></div>
-        <div class="badge"><span>Grúas</span><span class="k" id="sum-gruas">0</span></div>
-      </aside>
-    </div>
+      </div>
+    </details>
 
-    <section class="shop" id="shop">
-      <h2>MEJORAS</h2>
-      <div id="shopList" aria-live="polite"></div>
-    </section>
+    <details id="shopPanel" open>
+      <summary>Mejoras</summary>
+      <div class="panel-body">
+        <section class="shop" id="shop" aria-labelledby="shopHeading">
+          <h2 id="shopHeading">Catálogo de mejoras</h2>
+          <div id="shopList" aria-live="polite"></div>
+        </section>
+      </div>
+    </details>
 
-    <section class="panel settings">
+    <section class="panel settings" id="settingsPanel">
       <h2>Ajustes</h2>
       <label>Audio <input type="checkbox" id="audioToggle" checked></label>
       <label>Vibración <input type="checkbox" id="vibrationToggle" checked></label>
@@ -161,6 +263,12 @@
       </div>
     </div>
   </div>
+
+  <nav id="bottomBar" aria-label="Acciones principales">
+    <button type="button" class="nav-btn" id="btnBonus">Marea viva</button>
+    <button type="button" class="nav-btn" id="navShop">Tiendas</button>
+    <button type="button" class="nav-btn" id="navSettings">Ajustes</button>
+  </nav>
 
   <svg id="sprite-defs" width="0" height="0" aria-hidden="true" style="position:absolute">
     <defs>
@@ -197,14 +305,5 @@
       <rect x="42" y="20" width="6" height="6" fill="#FF8C00"/>
     </symbol>
   </svg>
-
-  <!-- Carga del entrypoint como módulo con versión para evitar caché SW -->
-  <script type="module" src="/src/main.js?v=9"></script>
-  <script>
-    // Registro del SW (si falla, no bloquea el juego)
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=9').catch(()=>{});
-    }
-  </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import { upgradesDef, costeSiguiente, getUpgradeLevel } from './balance.js';
-import { buyUpgrade } from './main.js';
+import { buyUpgrade, doTap } from './main.js';
 
 // HUD mínimo; si ya tienes más UI, conserva y añade estos refs
 let $contador,$jps,$bonusBar,$bonusText;
@@ -7,12 +7,39 @@ let $rowBarcos,$rowObreros,$rowGruas,$sumBarcos,$sumObreros,$sumGruas;
 let $shopList;
 let _shopSig = '';
 let _lastRenderMs = 0;
+let $tapBoat,$tapFx;
+let _popTimer = 0;
 
 export function initUI(){
   $contador = document.getElementById('contador');
   $jps = document.getElementById('jps');
   $bonusBar = document.getElementById('bonusBar');
   $bonusText = document.getElementById('bonusText');
+
+  initTapBoat();
+
+  const dockPanel = document.getElementById('dockPanel');
+  if (dockPanel){
+    const mq = window.matchMedia('(min-width: 768px)');
+    const syncDock = ()=>{
+      if (mq.matches){
+        dockPanel.setAttribute('open','');
+      }
+    };
+    syncDock();
+    mq.addEventListener?.('change', syncDock);
+  }
+
+  const navShop = document.getElementById('navShop');
+  navShop?.addEventListener('click', ()=>{
+    const panel = document.getElementById('shopPanel');
+    panel?.setAttribute('open','');
+    panel?.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+  const navSettings = document.getElementById('navSettings');
+  navSettings?.addEventListener('click', ()=>{
+    document.getElementById('settingsPanel')?.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
 }
 export function renderHUD(s){
   if (!$contador) return;
@@ -126,6 +153,82 @@ export function updateDarsena({barcos,obreros,gruas}){
   if ($sumBarcos)  $sumBarcos.textContent  = String(barcos);
   if ($sumObreros) $sumObreros.textContent = String(obreros);
   if ($sumGruas)   $sumGruas.textContent   = String(gruas);
+}
+
+export function initTapBoat(){
+  $tapBoat = document.getElementById('tapBoat');
+  $tapFx = document.getElementById('tapFx');
+  if (!$tapBoat) return;
+  if ($tapBoat.dataset.tapReady) return;
+  $tapBoat.dataset.tapReady = '1';
+
+  const handlePointer = (evt)=>{
+    if (evt.button !== undefined && evt.button !== 0) return;
+    evt.preventDefault();
+    const count = 10 + Math.floor(Math.random()*11);
+    spawnParticles(evt, count);
+    doTap();
+    $tapBoat.classList.add('pop');
+    clearTimeout(_popTimer);
+    _popTimer = window.setTimeout(()=>{
+      $tapBoat?.classList.remove('pop');
+    }, 160);
+  };
+
+  const handleKey = (evt)=>{
+    if (evt.key === 'Enter' || evt.key === ' '){
+      evt.preventDefault();
+      const count = 10 + Math.floor(Math.random()*11);
+      spawnParticles(null, count);
+      doTap();
+      $tapBoat.classList.add('pop');
+      clearTimeout(_popTimer);
+      _popTimer = window.setTimeout(()=>{
+        $tapBoat?.classList.remove('pop');
+      }, 160);
+    }
+  };
+
+  $tapBoat.addEventListener('pointerdown', handlePointer);
+  $tapBoat.addEventListener('keydown', handleKey);
+}
+
+function spawnParticles(evt, n){
+  if (!$tapBoat || !$tapFx) return;
+  const rect = $tapBoat.getBoundingClientRect();
+  let clientX = rect.left + rect.width/2;
+  let clientY = rect.top + rect.height/2;
+
+  if (evt && 'touches' in evt && evt.touches?.length){
+    clientX = evt.touches[0].clientX;
+    clientY = evt.touches[0].clientY;
+  } else if (evt && 'changedTouches' in evt && evt.changedTouches?.length){
+    clientX = evt.changedTouches[0].clientX;
+    clientY = evt.changedTouches[0].clientY;
+  } else if (evt && typeof evt.clientX === 'number'){ 
+    clientX = evt.clientX;
+    clientY = evt.clientY;
+  }
+
+  const originX = clientX - rect.left;
+  const originY = clientY - rect.top;
+
+  for (let i = 0; i < n; i++){
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    const dx = (Math.random()*80) - 40;
+    const dy = 60 + Math.random()*60;
+    const rot = (Math.random()*100) - 50;
+    const offsetX = originX + (Math.random()*12 - 6);
+    const offsetY = originY + (Math.random()*12 - 6);
+    particle.style.left = `${offsetX}px`;
+    particle.style.top = `${offsetY}px`;
+    particle.style.setProperty('--dx', dx.toFixed(1)+'px');
+    particle.style.setProperty('--dy', dy.toFixed(1)+'px');
+    particle.style.setProperty('--rot', rot.toFixed(1)+'deg');
+    $tapFx.appendChild(particle);
+    window.setTimeout(()=>{ particle.remove(); }, 720);
+  }
 }
 
 // util
