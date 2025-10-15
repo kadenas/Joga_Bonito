@@ -11,7 +11,7 @@ let $achList;
 let _achSig = '';
 let _toastNode = null;
 let _toastTimer = 0;
-let $tapBoat,$tapFx;
+let $tapBoat,$tapFx,$btnTapFallback;
 let _popTimer = 0;
 
 export function initUI(){
@@ -19,6 +19,7 @@ export function initUI(){
   $jps = document.getElementById('jps') || $jps;
   $bonusBar = document.getElementById('bonusBar') || $bonusBar;
   $bonusText = document.getElementById('bonusText') || $bonusText;
+  $btnTapFallback = document.getElementById('btnTapFallback') || $btnTapFallback;
 
   initTapBoat();
 
@@ -122,7 +123,8 @@ export function updateShop(state){
   });
 }
 
-function buildShop(){
+export function buildShop(){
+  $shopList = document.getElementById('shopList') || $shopList;
   if (!$shopList) return;
 
   $shopList.innerHTML = '';
@@ -315,19 +317,33 @@ export function updateDarsena({barcos,obreros,gruas}){
 }
 
 export function initTapBoat(){
-  $tapBoat = document.getElementById('tapBoat');
-  $tapFx = document.getElementById('tapFx');
-  if (!$tapBoat) return;
-  if ($tapBoat.dataset.tapReady) return;
+  $tapBoat = document.getElementById('tapBoat') || $tapBoat;
+  $tapFx = document.getElementById('tapFx') || $tapFx;
+  $btnTapFallback = document.getElementById('btnTapFallback') || $btnTapFallback;
+
+  if ($btnTapFallback && !$btnTapFallback.dataset.tapReady){
+    $btnTapFallback.dataset.tapReady = '1';
+    $btnTapFallback.addEventListener('click', (evt)=>{
+      evt.preventDefault?.();
+      const gain = doTap();
+      showTapFloat(gain, evt);
+    });
+  }
+  if ($btnTapFallback){
+    const hasBoat = !!$tapBoat;
+    $btnTapFallback.hidden = hasBoat;
+    $btnTapFallback.setAttribute('aria-hidden', hasBoat ? 'true' : 'false');
+  }
+
+  if (!$tapBoat || $tapBoat.dataset.tapReady) return;
   $tapBoat.dataset.tapReady = '1';
 
-  const handlePointer = (evt)=>{
-    if (evt.button !== undefined && evt.button !== 0) return;
-    evt.stopPropagation?.();
-    evt.preventDefault?.();
+  let suppressClick = false;
+  const triggerTap = (evt)=>{
     const count = 10 + Math.floor(Math.random()*11);
     spawnParticles(evt, count);
-    doTap();
+    const gain = doTap();
+    showTapFloat(gain, evt);
     if (state.settings?.vibrate !== false && navigator.vibrate){
       try { navigator.vibrate(12); } catch (err) { /* ignore */ }
     }
@@ -338,50 +354,43 @@ export function initTapBoat(){
     }, 160);
   };
 
+  const handlePointer = (evt)=>{
+    if (evt.button !== undefined && evt.button !== 0) return;
+    suppressClick = true;
+    window.setTimeout(()=>{ suppressClick = false; }, 280);
+    evt.stopPropagation?.();
+    evt.preventDefault?.();
+    triggerTap(evt);
+  };
+
+  const handleClick = (evt)=>{
+    if (suppressClick){
+      suppressClick = false;
+      return;
+    }
+    evt.stopPropagation?.();
+    evt.preventDefault?.();
+    triggerTap(evt);
+  };
+
   const handleKey = (evt)=>{
     if (evt.key === 'Enter' || evt.key === ' '){
       evt.preventDefault();
-      const count = 10 + Math.floor(Math.random()*11);
-      spawnParticles(null, count);
-      doTap();
-      if (state.settings?.vibrate !== false && navigator.vibrate){
-        try { navigator.vibrate(12); } catch (err) { /* ignore */ }
-      }
-      $tapBoat.classList.add('pop');
-      clearTimeout(_popTimer);
-      _popTimer = window.setTimeout(()=>{
-        $tapBoat?.classList.remove('pop');
-      }, 160);
+      triggerTap(null);
     }
   };
 
-  if (window.PointerEvent){
-    $tapBoat.addEventListener('pointerdown', handlePointer);
-  } else {
-    $tapBoat.addEventListener('click', handlePointer);
-  }
+  $tapBoat.addEventListener('pointerdown', handlePointer);
+  $tapBoat.addEventListener('click', handleClick);
   $tapBoat.addEventListener('keydown', handleKey);
 }
 
 function spawnParticles(evt, n){
   if (!$tapBoat || !$tapFx) return;
   const rect = $tapBoat.getBoundingClientRect();
-  let clientX = rect.left + rect.width/2;
-  let clientY = rect.top + rect.height/2;
-
-  if (evt && 'touches' in evt && evt.touches?.length){
-    clientX = evt.touches[0].clientX;
-    clientY = evt.touches[0].clientY;
-  } else if (evt && 'changedTouches' in evt && evt.changedTouches?.length){
-    clientX = evt.changedTouches[0].clientX;
-    clientY = evt.changedTouches[0].clientY;
-  } else if (evt && typeof evt.clientX === 'number'){ 
-    clientX = evt.clientX;
-    clientY = evt.clientY;
-  }
-
-  const originX = clientX - rect.left;
-  const originY = clientY - rect.top;
+  const point = getEventPoint(evt);
+  const originX = point ? point.x - rect.left : rect.width / 2;
+  const originY = point ? point.y - rect.top : rect.height / 2;
 
   for (let i = 0; i < n; i++){
     const particle = document.createElement('div');
@@ -399,6 +408,45 @@ function spawnParticles(evt, n){
     $tapFx.appendChild(particle);
     window.setTimeout(()=>{ particle.remove(); }, 720);
   }
+}
+
+function showTapFloat(value, evt){
+  const host = ($tapFx = document.getElementById('tapFx') || $tapFx) || (evt?.currentTarget instanceof HTMLElement ? evt.currentTarget : $btnTapFallback);
+  if (!host) return;
+  const safe = Math.max(0, Number(value) || 0);
+  const amount = Math.max(1, Math.round(safe));
+  const node = document.createElement('div');
+  node.className = 'tapFloat';
+  node.textContent = `+${fmt(amount)}`;
+
+  if (host === $tapFx){
+    const rect = host.getBoundingClientRect();
+    const point = getEventPoint(evt);
+    const left = point ? point.x - rect.left : rect.width / 2;
+    const top = point ? point.y - rect.top : rect.height / 2;
+    node.style.left = `${left}px`;
+    node.style.top = `${top}px`;
+  } else {
+    node.style.left = '50%';
+    node.style.top = '50%';
+  }
+
+  host.appendChild(node);
+  window.setTimeout(()=>{ node.remove(); }, 720);
+}
+
+function getEventPoint(evt){
+  if (!evt) return null;
+  if ('touches' in evt && evt.touches?.length){
+    return { x: evt.touches[0].clientX, y: evt.touches[0].clientY };
+  }
+  if ('changedTouches' in evt && evt.changedTouches?.length){
+    return { x: evt.changedTouches[0].clientX, y: evt.changedTouches[0].clientY };
+  }
+  if (typeof evt.clientX === 'number' && typeof evt.clientY === 'number'){
+    return { x: evt.clientX, y: evt.clientY };
+  }
+  return null;
 }
 
 // util

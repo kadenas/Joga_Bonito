@@ -52,6 +52,8 @@ export function doTap(){
   }
   if (state.settings.audio) audio.playTap();
   ui.renderHUD(state);
+  ui.updateShop?.(state);
+  return gain;
 }
 export function toggleBonus(){
   if (!state.bonus.active && state.bonus.cooldown<=0){
@@ -93,6 +95,7 @@ export function buyUpgrade(id){
 
   _lastSig = ''; // fuerza redibujar dársena
   ui.updateShop?.(state);
+  ui.renderHUD(state);
   if (state.settings.audio) audio.playUpgrade();
 }
 
@@ -163,7 +166,7 @@ function frame(now){
 window.addEventListener('DOMContentLoaded', ()=>{
   ui.initUI?.();
   ui.initDarsena?.();
-  ui.mountShop?.();
+  ui.buildShop?.();
   ui.mountAchievements?.();
 
   const btnBonus = document.getElementById('btnBonus');
