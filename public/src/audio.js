@@ -44,3 +44,9 @@ export function playUpgrade(){
   beep(320, 0.06, 'sawtooth', 0.05);
   setTimeout(()=>beep(480, 0.06, 'sawtooth', 0.04), 50);
 }
+
+export function playAchievement(){
+  beep(440, 0.12, 'sine', 0.06);
+  setTimeout(()=>beep(660, 0.12, 'sine', 0.05), 110);
+  setTimeout(()=>beep(880, 0.14, 'sine', 0.045), 220);
+}

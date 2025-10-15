@@ -115,6 +115,19 @@
     .buy[disabled]{opacity:.4;filter:grayscale(40%);cursor:not-allowed;box-shadow:none}
     .level{opacity:.8;font-size:12px;font-weight:600;margin-left:6px}
     .row2{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+    .item.locked{background:#0b2850;opacity:.65;filter:grayscale(.2)}
+    .item.locked .price{background:#162f55}
+    .achievement .status{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:12px;background:#123867;font-weight:600;letter-spacing:.04em}
+    .achievement.ready{box-shadow:0 0 0 2px rgba(255,200,0,.35)}
+    .achievement.claimed{opacity:.6}
+    #achList{display:grid;gap:12px;padding:0 22px 22px}
+    .ach-claim{border:0;border-radius:12px;padding:8px 14px;background:linear-gradient(180deg,#ffd964 0%,#ffae00 100%);color:#1b160c;font-weight:700;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.3);text-transform:uppercase;letter-spacing:.08em}
+    .ach-claim:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+    .toast{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;margin:auto;max-width:520px;background:#123867;border-radius:12px;padding:12px;box-shadow:0 8px 0 rgba(0,0,0,.3);animation:slideDown 250ms ease-out;display:grid;gap:8px;z-index:50;text-align:center}
+    .toast.fade{opacity:0;transform:translateY(-10px);transition:opacity .4s ease,transform .4s ease}
+    .toast strong{font-size:16px;letter-spacing:.08em;text-transform:uppercase}
+    .toast .ach-claim{justify-self:center}
+    @keyframes slideDown{from{transform:translateY(-20px);opacity:0}to{transform:translateY(0);opacity:1}}
     .settings{display:grid;gap:12px;background:var(--panel);border-radius:20px;padding:22px;box-shadow:0 16px 34px rgba(0,0,0,.32)}
     .settings h2{margin:0;font-size:clamp(16px,4vw,20px);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
     .settings label{display:flex;justify-content:space-between;align-items:center;background:#102f57;padding:12px 16px;border-radius:14px;font-size:clamp(14px,3.6vw,16px)}
@@ -239,6 +252,11 @@
           <div id="shopList" aria-live="polite"></div>
         </section>
       </div>
+    </details>
+
+    <details id="achPanel">
+      <summary>Logros</summary>
+      <div id="achList" aria-live="polite"></div>
     </details>
 
     <section class="panel settings" id="settingsPanel">
