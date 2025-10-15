@@ -16,7 +16,7 @@ Abre <http://localhost:8080/public/index.html> en tu navegador.
 
 ### Servir con Nginx u otro servidor
 
-Configura el directorio raíz apuntando a la carpeta del repositorio. Asegúrate de servir `index.html`, los módulos de `src/`, `sw.js` en la raíz y habilitar `Service-Worker-Allowed` si cambias la estructura.
+Configura el directorio raíz apuntando a la carpeta `public/` del repositorio. Asegúrate de servir `/index.html`, los módulos de `/src/*.js` y `/sw.js` en la raíz pública y habilitar `Service-Worker-Allowed` si cambias la estructura.
 
 ## Instalación como PWA
 
@@ -37,13 +37,13 @@ Configura el directorio raíz apuntando a la carpeta del repositorio. Asegúrate
 public/
   index.html        # Entrada principal con layout y registro del service worker
   manifest.webmanifest
-src/
-  main.js           # Bucle principal, estado y lógica del juego
-  ui.js             # Renderizado y eventos de interfaz
-  audio.js          # Síntesis WebAudio y control de audio
-  save.js           # Guardado local, autosave y exportación
-  balance.js        # Definición de mejoras y fórmulas
   sw.js             # Service worker cache-first
+  src/
+    main.js         # Bucle principal, estado y lógica del juego
+    ui.js           # Renderizado y eventos de interfaz
+    audio.js        # Síntesis WebAudio y control de audio
+    save.js         # Guardado local, autosave y exportación
+    balance.js      # Definición de mejoras y fórmulas
 assets/
   README.txt        # Información sobre futuros assets
 ```
@@ -56,7 +56,7 @@ La sección **DÁRSENA** del `index.html` añade una representación tipo idle g
 - **Aprendices**: muestra un obrero por nivel de la mejora `aprendices`.
 - **Grúas y equipo**: genera una grúa por cada 3 niveles sumados entre `equipo de remachado` y `capataz veterano` (`Math.floor((equipo + capataz) / 3)`).
 
-Las cifras se calculan en `getTotalsForVisuals` (`src/main.js`), apoyándose en el helper `getUpgradeLevel` de `src/balance.js`. Cada carril es horizontalmente desplazable en pantallas pequeñas y cuenta con un fondo animado de agua, mientras que el panel lateral **Resumen del astillero** muestra los totales sincronizados. Para extender la Dársena añade nuevos símbolos SVG y usa `renderTokens` en `src/ui.js` para pintar las filas sin repintados completos.
+Las cifras se calculan en `getTotalsForVisuals` (`public/src/main.js`), apoyándose en el helper `getUpgradeLevel` de `public/src/balance.js`. Cada carril es horizontalmente desplazable en pantallas pequeñas y cuenta con un fondo animado de agua, mientras que el panel lateral **Resumen del astillero** muestra los totales sincronizados. Para extender la Dársena añade nuevos símbolos SVG y usa `renderTokens` en `public/src/ui.js` para pintar las filas sin repintados completos.
 
 ## Rendimiento y futuras mejoras
 
