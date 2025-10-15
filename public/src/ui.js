@@ -34,7 +34,7 @@ export function mountShop(){
     const id = btn.dataset.id;
     if (!id) return;
     buyUpgrade(id);
-  }, { passive: true });
+  });
 }
 
 export function invalidateShop(){
