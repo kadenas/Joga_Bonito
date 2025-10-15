@@ -1,5 +1,4 @@
 import { upgradesDef, costeSiguiente, getUpgradeLevel } from './balance.js';
-import { buyUpgrade } from './main.js';
 
 // HUD mínimo; si ya tienes más UI, conserva y añade estos refs
 let $contador,$jps,$bonusBar,$bonusText;
@@ -28,13 +27,6 @@ export function renderHUD(s){
 /* ---------- TIENDA ---------- */
 export function mountShop(){
   $shopList = document.getElementById('shopList');
-  $shopList?.addEventListener('click', (event)=>{
-    const btn = event.target.closest('button.buy');
-    if (!btn) return;
-    const id = btn.dataset.id;
-    if (!id) return;
-    buyUpgrade(id);
-  });
 }
 
 export function invalidateShop(){
@@ -60,7 +52,7 @@ export function renderShop(state){
         </div>
         <div class="row2">
           <div class="price">Coste ${fmt(coste)}</div>
-          <button class="buy" data-id="${def.id}" ${afford ? '' : 'disabled'}>Comprar</button>
+          <button type="button" class="buy" data-id="${def.id}" ${afford ? '' : 'disabled'} onclick="Astillero.buyUpgrade('${def.id}')">Comprar</button>
         </div>
       </div>
     `;
