@@ -76,6 +76,16 @@
     .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,7,16,.72);backdrop-filter:blur(4px);padding:16px;z-index:30}
     .modal.active{display:flex}
     .modal-content{background:#091b36;border-radius:18px;padding:20px;display:grid;gap:12px;max-width:420px;width:100%}
+    .shop{background:var(--panel);border-radius:14px;padding:16px;box-shadow:0 12px 24px rgba(0,0,0,.28);display:grid;gap:12px}
+    .shop h2{margin:0;font-size:16px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+    .item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#0f355f;padding:12px;border-radius:12px}
+    .item h3{margin:0;font-size:16px}
+    .item p{margin:2px 0 0;font-size:13px;opacity:.85}
+    .price{font-weight:800;background:#123867;padding:8px 12px;border-radius:10px}
+    .buy{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#1b160c;font-weight:800;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+    .buy[disabled]{opacity:.4;filter:grayscale(40%);cursor:not-allowed;box-shadow:none}
+    .level{opacity:.8;font-size:12px;font-weight:600;margin-left:6px}
+    .row2{display:flex;gap:8px;align-items:center;justify-content:flex-end}
     @keyframes bob{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-.3deg)}100%{transform:translateY(0) rotate(0)}}
     @keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.2deg)}}
     @keyframes waterShift{from{background-position-x:0}to{background-position-x:-260px}}
@@ -123,9 +133,9 @@
       </aside>
     </div>
 
-    <section class="panel">
-      <h2 style="margin-top:0">Mejoras</h2>
-      <div class="upgrades" id="upgradesList" aria-live="polite" aria-label="Mejoras disponibles"></div>
+    <section class="shop" id="shop">
+      <h2>MEJORAS</h2>
+      <div id="shopList" aria-live="polite"></div>
     </section>
 
     <section class="panel settings">
@@ -188,11 +198,11 @@
   </svg>
 
   <!-- Carga del entrypoint como módulo con versión para evitar caché SW -->
-  <script type="module" src="/src/main.js?v=5"></script>
+  <script type="module" src="/src/main.js?v=6"></script>
   <script>
     // Registro del SW (si falla, no bloquea el juego)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=5').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=6').catch(()=>{});
     }
   </script>
 </body>

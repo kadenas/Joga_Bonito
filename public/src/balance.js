@@ -1,22 +1,26 @@
 export const factorCoste = 1.12;
 
 export const upgradesDef = [
-  { id: 'martillos', tipo: 'click', nombre: 'Martillos reforzados', baseCoste: 15, baseEfecto: 1 },
-  { id: 'yunque', tipo: 'click', nombre: 'Yunque estable', baseCoste: 60, baseEfecto: 3, extraPorNivel: 2 },
-  { id: 'equipo', tipo: 'click-mult', nombre: 'Equipo de remachado', baseCoste: 240, multiplicador: 1.2 },
-  { id: 'aprendices', tipo: 'pasivo', nombre: 'Aprendices', baseCoste: 40, jps: 0.5 },
-  { id: 'capataz', tipo: 'pasivo', nombre: 'Capataz veterano', baseCoste: 180, jps: 3 },
-  { id: 'dique', tipo: 'pasivo', nombre: 'Dique seco mejorado', baseCoste: 600, jps: 10 }
+  { id: 'martillos',  tipo: 'click',      nombre: 'Martillos reforzados', desc: '+1 jornal por tap', baseCoste: 15, baseEfecto: 1 },
+  { id: 'yunque',     tipo: 'click',      nombre: 'Yunque estable', desc: '+3 inicial, +2 por nivel', baseCoste: 60, baseEfecto: 3, extraPorNivel: 2 },
+  { id: 'equipo',     tipo: 'click-mult', nombre: 'Equipo de remachado', desc: 'x1.2 al valor por tap', baseCoste: 240, multiplicador: 1.2 },
+  { id: 'aprendices', tipo: 'pasivo',     nombre: 'Aprendices', desc: '+0.5 J/s por nivel', baseCoste: 40, jps: 0.5 },
+  { id: 'capataz',    tipo: 'pasivo',     nombre: 'Capataz veterano', desc: '+3 J/s por nivel', baseCoste: 180, jps: 3 },
+  { id: 'dique',      tipo: 'pasivo',     nombre: 'Dique seco mejorado', desc: '+10 J/s por nivel', baseCoste: 600, jps: 10 }
 ];
 
 export const upgrades = upgradesDef;
 
 const upgradeMap = new Map(upgradesDef.map((u) => [u.id, u]));
 
+export function getDef(id) {
+  return upgradeMap.get(id);
+}
+
 export function costeSiguiente(idOrDef, nivel) {
   const def = typeof idOrDef === 'string' ? upgradeMap.get(idOrDef) : idOrDef;
   if (!def) return Infinity;
-  return def.baseCoste * Math.pow(factorCoste, nivel);
+  return Math.floor(def.baseCoste * Math.pow(factorCoste, nivel));
 }
 
 export function getUpgradeLevel(state, id) {

@@ -1,5 +1,5 @@
 import * as ui from './ui.js';
-import { upgradesDef, jpsTotal, valorClick, getUpgradeLevel } from './balance.js';
+import { upgradesDef, jpsTotal, valorClick, getUpgradeLevel, getDef, costeSiguiente } from './balance.js';
 
 // Estado básico (si ya existe, conserva tus campos)
 export const state = window.__STATE__ || {
@@ -27,14 +27,33 @@ export function toggleBonus(){
   }
 }
 export function buyUpgrade(id){
-  const def = upgradesDef.find(u=>u.id===id);
-  const u = state.upgrades.find(x=>x.id===id);
-  const cost = Math.floor(def.baseCoste * Math.pow(1.12, u.nivel));
-  if (state.jornales >= cost){
-    state.jornales -= cost;
-    u.nivel++;
-    _lastSig = ''; // fuerza redibujar dársena
+  const def = getDef(id) || upgradesDef.find(u=>u.id===id);
+  if (!def) return;
+  const nivelActual = getUpgradeLevel(state, id);
+  const cost = costeSiguiente(def, nivelActual);
+  if (state.jornales < cost) return;
+
+  state.jornales -= cost;
+
+  if (Array.isArray(state.upgrades)){
+    const entry = state.upgrades.find(x=>x.id===id);
+    if (entry){
+      entry.nivel = (entry.nivel ?? 0) + 1;
+    } else {
+      state.upgrades.push({ id, nivel: 1 });
+    }
+  } else if (state.upgrades && typeof state.upgrades === 'object'){
+    const current = state.upgrades[id];
+    if (typeof current === 'object' && current !== null){
+      current.nivel = (current.nivel ?? current.level ?? 0) + 1;
+    } else {
+      const prev = Number(current) || 0;
+      state.upgrades[id] = prev + 1;
+    }
   }
+
+  _lastSig = ''; // fuerza redibujar dársena
+  ui.invalidateShop?.();
 }
 
 // Totales para la dársena
@@ -66,6 +85,7 @@ function frame(now){
 
   // HUD
   ui.renderHUD?.(state);
+  ui.renderShop?.(state);
 
   // Dársena
   const t = getTotalsForVisuals(state);
@@ -82,6 +102,7 @@ function frame(now){
 window.addEventListener('DOMContentLoaded', ()=>{
   ui.initUI?.();
   ui.initDarsena?.();
+  ui.mountShop?.();
 
   const btnTap = document.getElementById('btnTap');
   const btnBonus = document.getElementById('btnBonus');
@@ -90,6 +111,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   // Primera pintura
   ui.renderHUD?.(state);
+  ui.renderShop?.(state);
   ui.updateDarsena?.(getTotalsForVisuals(state));
 
   requestAnimationFrame(frame);
