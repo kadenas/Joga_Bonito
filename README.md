@@ -65,6 +65,37 @@ Las cifras se calculan en `getTotalsForVisuals` (`public/src/main.js`), apoyánd
 - La Dársena y la Tienda se presentan como acordeones (`<details>`) con la Dársena plegada por defecto en móviles. El contenido de la tienda permanece abierto por accesibilidad.
 - Las partículas y el layout mantienen un enfoque mobile-first con tamaños fluidos (`clamp()`) y animaciones CSS puras.
 
+## Desbloqueos por Jornales/s
+
+Algunas mejoras de la tienda permanecen ocultas hasta que la producción automática alcanza un umbral de **Jornales por segundo (J/s)**. Cada entrada de `upgradesDef` admite un campo opcional `unlockJps`; si el jugador no llega al valor, la carta se oculta. Cuando se supera el 80 % del requisito aparece un placeholder gris con un candado y el texto “Desbloquea al alcanzar X J/s” para avisar que el desbloqueo está cerca.
+
+Los desbloqueos actuales son:
+
+- `equipo`: visible a partir de 10 J/s.
+- `capataz`: visible a partir de 25 J/s.
+- `dique`: visible a partir de 60 J/s.
+
+## Logros y recompensas
+
+El estado del juego incluye `state.achievements`, con dos bloques:
+
+- `claimed`: mapa de logros ya reclamados (`true`).
+- `progress`: contadores acumulados (`taps`, `totalJornales`, `maxJps`, `compras`, `barcos`).
+
+Los logros se definen en `public/src/balance.js` mediante `achievementsDef`, cada uno con título, descripción, condición (`cond`) y recompensa (`reward`). Las condiciones disponibles son:
+
+- `taps`: cantidad total de toques manuales.
+- `maxJps`: máximo histórico de Jornales/s.
+- `compras`: total de compras realizadas en la tienda.
+- `barcos`: número de barcos simultáneos en la dársena (derivado de `getTotalsForVisuals`).
+
+Cuando se cumple una condición, aparece un banner superior con sonido armónico y botón **Reclamar**. Al pulsarlo se aplican dos tipos de recompensa:
+
+- `flat`: añade jornales inmediatos a la reserva actual.
+- `mult`: incrementa un multiplicador permanente (`state.bonus.permaMult`), que afecta a los jornales ganados por tap y a los J/s pasivos. Si es mayor que 1 se muestra en el HUD con formato `x1.05`, `x1.10`, etc.
+
+El panel **Logros** (debajo de la tienda) lista todas las metas, señalando si están bloqueadas, listas para reclamar o ya reclamadas.
+
 ## Rendimiento y futuras mejoras
 
 - La UI se actualiza usando `requestAnimationFrame`, mientras el cálculo lógico ocurre cada 100 ms para mantener el consumo reducido.

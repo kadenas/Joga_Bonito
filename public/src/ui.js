@@ -1,11 +1,16 @@
-import { upgradesDef, costeSiguiente, getUpgradeLevel } from './balance.js';
-import { buyUpgrade, doTap } from './main.js';
+import { upgradesDef, costeSiguiente, getUpgradeLevel, achievementsDef, canClaim, isAchieved, applyReward } from './balance.js';
+import { buyUpgrade, doTap, state } from './main.js';
+import * as audio from './audio.js';
 
 // HUD mínimo; si ya tienes más UI, conserva y añade estos refs
 let $contador,$jps,$bonusBar,$bonusText;
 let $rowBarcos,$rowObreros,$rowGruas,$sumBarcos,$sumObreros,$sumGruas;
 let $shopList;
 let _shopSig = '';
+let $achList;
+let _achSig = '';
+let _toastNode = null;
+let _toastTimer = 0;
 let _lastRenderMs = 0;
 let $tapBoat,$tapFx;
 let _popTimer = 0;
@@ -44,7 +49,9 @@ export function initUI(){
 export function renderHUD(s){
   if (!$contador) return;
   $contador.textContent = fmt(s.jornales);
-  $jps.textContent = `${fmt(s.jornalesPerSec)} Jornales/s`;
+  const perma = s.bonus?.permaMult ?? 1;
+  const permaLabel = perma > 1 ? ` · x${perma.toFixed(2)}` : '';
+  $jps.textContent = `${fmt(s.jornalesPerSec)} Jornales/s${permaLabel}`;
 
   const cd = s.bonus.cooldown;
   const total = s.bonus.cooldownMax + s.bonus.duration;
@@ -58,6 +65,10 @@ export function mountShop(){
   $shopList = document.getElementById('shopList');
 }
 
+export function mountAchievements(){
+  $achList = document.getElementById('achList');
+}
+
 export function invalidateShop(){
   _shopSig = '';
 }
@@ -68,11 +79,28 @@ export function renderShop(state){
   if (now - _lastRenderMs < 250) return;
   _lastRenderMs = now;
 
-  const sig = upgradesDef.map((def)=>`${def.id}:${getUpgradeLevel(state, def.id)}`).join('|') + '|' + Math.floor(state.jornales);
+  const sig = upgradesDef.map((def)=>`${def.id}:${getUpgradeLevel(state, def.id)}`).join('|') + '|' + Math.floor(state.jornales) + '|' + Math.floor((state.jornalesPerSec ?? 0) * 100);
   if (sig === _shopSig) return;
   _shopSig = sig;
 
   const html = upgradesDef.map((def)=>{
+    if (def.unlockJps && (state.jornalesPerSec ?? 0) < def.unlockJps){
+      const ratio = def.unlockJps ? (state.jornalesPerSec ?? 0) / def.unlockJps : 0;
+      if (ratio >= 0.8){
+        return `
+          <div class="item locked" data-id="${def.id}">
+            <div>
+              <h3>${def.nombre}</h3>
+              <p>Desbloquea al alcanzar ${fmt(def.unlockJps)} J/s</p>
+            </div>
+            <div class="row2">
+              <div class="price">🔒</div>
+            </div>
+          </div>
+        `;
+      }
+      return '';
+    }
     const nivel = getUpgradeLevel(state, def.id);
     const coste = costeSiguiente(def, nivel);
     const afford = state.jornales >= coste;
@@ -105,6 +133,97 @@ export function renderShop(state){
       ev.stopPropagation();
     });
   });
+}
+
+export function renderAchievements(currentState){
+  if (!$achList) return;
+  const claimed = currentState.achievements?.claimed || {};
+  const sig = achievementsDef.map((ach)=>{
+    const status = claimed[ach.id] ? 'C' : (canClaim(currentState, ach) ? 'R' : (isAchieved(currentState, ach) ? 'A' : 'L'));
+    return `${ach.id}:${status}`;
+  }).join('|');
+  if (sig === _achSig) return;
+  _achSig = sig;
+
+  const html = achievementsDef.map((ach)=>{
+    const wasClaimed = !!claimed[ach.id];
+    const readyNow = canClaim(currentState, ach);
+    const achieved = !wasClaimed && (readyNow || isAchieved(currentState, ach));
+    const stateLabel = wasClaimed ? 'Reclamado' : (readyNow ? 'Reclamar' : 'Bloqueado');
+    const extraClass = wasClaimed ? 'claimed' : (readyNow ? 'ready' : (achieved ? 'achieved' : 'locked'));
+    const button = readyNow ? `<button type="button" class="ach-claim" data-claim="${ach.id}">Reclamar</button>` : `<span class="status">${stateLabel}</span>`;
+    return `
+      <article class="item achievement ${extraClass}" data-ach="${ach.id}">
+        <div>
+          <h3>${ach.titulo}</h3>
+          <p>${ach.desc}</p>
+        </div>
+        <div class="row2">
+          ${button}
+        </div>
+      </article>
+    `;
+  }).join('');
+
+  $achList.innerHTML = html;
+  $achList.querySelectorAll('button[data-claim]').forEach((btn)=>{
+    btn.addEventListener('click', ()=>{
+      const id = btn.dataset.claim;
+      claimAchievement(id);
+    });
+  });
+}
+
+export function claimAchievement(id){
+  const ach = achievementsDef.find((a)=>a.id === id);
+  if (!ach) return;
+  if (!canClaim(state, ach)) return;
+  applyReward(state, ach);
+  state.achievements.claimed[ach.id] = true;
+  if (state.achievements.ready) delete state.achievements.ready[ach.id];
+  renderHUD?.(state);
+  renderAchievements?.(state);
+  if (_toastNode){
+    _toastNode.remove();
+    _toastNode = null;
+  }
+}
+
+export function showAchievementToast(ach){
+  if (!ach) return;
+  if (_toastNode){
+    _toastNode.remove();
+    _toastNode = null;
+  }
+  if (_toastTimer){
+    clearTimeout(_toastTimer);
+    _toastTimer = 0;
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+  toast.innerHTML = `
+    <strong>¡Logro listo!</strong>
+    <div>${ach.titulo}</div>
+    <button type="button" class="ach-claim" data-toast-claim="${ach.id}">Reclamar</button>
+  `;
+  document.body.appendChild(toast);
+  _toastNode = toast;
+  const btn = toast.querySelector('button[data-toast-claim]');
+  btn?.addEventListener('click', ()=>{
+    claimAchievement(ach.id);
+    toast.remove();
+    _toastNode = null;
+  });
+  _toastTimer = window.setTimeout(()=>{
+    toast?.classList.add('fade');
+    window.setTimeout(()=>{
+      if (toast === _toastNode){
+        toast.remove();
+        _toastNode = null;
+      }
+    }, 500);
+  }, 4000);
+  audio.playAchievement?.();
 }
 
 // Dársena

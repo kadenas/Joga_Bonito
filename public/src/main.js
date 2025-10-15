@@ -1,6 +1,6 @@
 import * as ui from './ui.js';
 import * as audio from './audio.js';
-import { upgradesDef, jpsTotal, valorClick, getUpgradeLevel, getDef, costeSiguiente } from './balance.js';
+import { upgradesDef, jpsTotal, valorClick, getUpgradeLevel, getDef, costeSiguiente, achievementsDef, isAchieved } from './balance.js';
 
 // Estado básico (si ya existe, conserva tus campos)
 export const state = window.__STATE__ || {
@@ -8,10 +8,31 @@ export const state = window.__STATE__ || {
   jornalesPerSec: 0,
   baseClick: 1,
   upgrades: upgradesDef.map(u=>({id:u.id, nivel:0})),
-  bonus: { active:false, remaining:0, cooldown:0, duration:30000, cooldownMax:120000, multiplier:2 },
+  bonus: { active:false, remaining:0, cooldown:0, duration:30000, cooldownMax:120000, multiplier:2, permaMult: 1 },
   totals: { taps:0, acumulados:0 },
-  settings: { audio:true, vibrate:true, notation:"abbr" }
+  settings: { audio:true, vibrate:true, notation:"abbr" },
+  achievements: { claimed: {}, progress: { taps:0, totalJornales:0, maxJps:0, compras:0 } }
 };
+
+if (!state.bonus) {
+  state.bonus = { active:false, remaining:0, cooldown:0, duration:30000, cooldownMax:120000, multiplier:2, permaMult: 1 };
+}
+if (state.bonus.permaMult == null) state.bonus.permaMult = 1;
+if (!state.achievements) {
+  state.achievements = { claimed: {}, progress: { taps:0, totalJornales:0, maxJps:0, compras:0 } };
+}
+if (!state.achievements.progress) {
+  state.achievements.progress = { taps:0, totalJornales:0, maxJps:0, compras:0 };
+}
+if (!state.achievements.claimed) {
+  state.achievements.claimed = {};
+}
+state.achievements.ready = state.achievements.ready || {};
+state.achievements.progress.taps = state.achievements.progress.taps ?? 0;
+state.achievements.progress.totalJornales = state.achievements.progress.totalJornales ?? 0;
+state.achievements.progress.maxJps = state.achievements.progress.maxJps ?? 0;
+state.achievements.progress.compras = state.achievements.progress.compras ?? 0;
+state.achievements.progress.barcos = state.achievements.progress.barcos ?? 0;
 
 // desbloqueo audio en la primera interacción
 audio.initOnFirstInteraction();
@@ -23,6 +44,11 @@ export function doTap(){
   if (state.bonus.active) gain *= state.bonus.multiplier;
   state.jornales += gain;
   state.totals.taps++;
+  const prog = state.achievements?.progress;
+  if (prog){
+    prog.taps = (prog.taps ?? 0) + 1;
+    prog.totalJornales = (prog.totalJornales ?? 0) + gain;
+  }
   if (state.settings.audio) audio.playTap();
   ui.renderHUD?.(state);
 }
@@ -59,6 +85,11 @@ export function buyUpgrade(id){
     }
   }
 
+  const prog = state.achievements?.progress;
+  if (prog){
+    prog.compras = (prog.compras ?? 0) + 1;
+  }
+
   _lastSig = ''; // fuerza redibujar dársena
   ui.invalidateShop?.();
   if (state.settings.audio) audio.playUpgrade();
@@ -91,17 +122,38 @@ function frame(now){
   state.jornalesPerSec = jpsTotal(state) * (state.bonus.active ? state.bonus.multiplier : 1);
   state.jornales += state.jornalesPerSec * (dt/1000);
 
+  const prog = state.achievements?.progress;
+  if (prog){
+    prog.totalJornales = (prog.totalJornales ?? 0) + state.jornalesPerSec * (dt/1000);
+    prog.maxJps = Math.max(prog.maxJps ?? 0, state.jornalesPerSec);
+  }
+
   // HUD
   ui.renderHUD?.(state);
   ui.renderShop?.(state);
 
   // Dársena
   const t = getTotalsForVisuals(state);
+  if (prog){
+    prog.barcos = t.barcos;
+  }
   const sig = `${t.barcos}|${t.obreros}|${t.gruas}`;
   if (sig !== _lastSig){
     ui.updateDarsena?.(t);
     _lastSig = sig;
   }
+
+  if (prog){
+    for (const ach of achievementsDef){
+      if (state.achievements.claimed?.[ach.id]) continue;
+      if (isAchieved(state, ach) && !state.achievements.ready[ach.id]){
+        state.achievements.ready[ach.id] = true;
+        ui.showAchievementToast?.(ach);
+      }
+    }
+  }
+
+  ui.renderAchievements?.(state);
 
   requestAnimationFrame(frame);
 }
@@ -111,6 +163,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   ui.initUI?.();
   ui.initDarsena?.();
   ui.mountShop?.();
+  ui.mountAchievements?.();
 
   const btnBonus = document.getElementById('btnBonus');
   btnBonus?.addEventListener('click', ()=>{ toggleBonus(); });
@@ -119,6 +172,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   ui.renderHUD?.(state);
   ui.renderShop?.(state);
   ui.updateDarsena?.(getTotalsForVisuals(state));
+  ui.renderAchievements?.(state);
 
   requestAnimationFrame(frame);
 });
