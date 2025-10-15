@@ -1,7 +1,7 @@
-const CACHE_NAME = 'muelle-mosquera-v10';
+const CACHE_NAME = 'muelle-mosquera-v12';
 const ASSETS = [
   '/', '/index.html', '/manifest.webmanifest',
-  '/src/main.js?v=10', '/src/ui.js', '/src/balance.js', '/src/audio.js', '/src/save.js'
+  '/src/main.js?v=12', '/src/ui.js', '/src/balance.js', '/src/audio.js', '/src/save.js'
 ];
 self.addEventListener('install', e=>{
   e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));
