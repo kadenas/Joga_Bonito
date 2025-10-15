@@ -6,20 +6,19 @@ import * as audio from './audio.js';
 let $contador,$jps,$bonusBar,$bonusText;
 let $rowBarcos,$rowObreros,$rowGruas,$sumBarcos,$sumObreros,$sumGruas;
 let $shopList;
-let _shopSig = '';
+const shopNodes = new Map();
 let $achList;
 let _achSig = '';
 let _toastNode = null;
 let _toastTimer = 0;
-let _lastRenderMs = 0;
 let $tapBoat,$tapFx;
 let _popTimer = 0;
 
 export function initUI(){
-  $contador = document.getElementById('contador');
-  $jps = document.getElementById('jps');
-  $bonusBar = document.getElementById('bonusBar');
-  $bonusText = document.getElementById('bonusText');
+  $contador = document.getElementById('contador') || $contador;
+  $jps = document.getElementById('jps') || $jps;
+  $bonusBar = document.getElementById('bonusBar') || $bonusBar;
+  $bonusText = document.getElementById('bonusText') || $bonusText;
 
   initTapBoat();
 
@@ -47,11 +46,14 @@ export function initUI(){
   });
 }
 export function renderHUD(s){
-  if (!$contador) return;
-  $contador.textContent = fmt(s.jornales);
-  const perma = s.bonus?.permaMult ?? 1;
-  const permaLabel = perma > 1 ? ` · x${perma.toFixed(2)}` : '';
-  $jps.textContent = `${fmt(s.jornalesPerSec)} Jornales/s${permaLabel}`;
+  if (!$contador || !$jps || !$bonusBar || !$bonusText) initUI();
+
+  if ($contador) $contador.textContent = fmt(s.jornales);
+  if ($jps){
+    const perma = s.bonus?.permaMult ?? 1;
+    const permaLabel = perma > 1 ? ` · x${perma.toFixed(2)}` : '';
+    $jps.textContent = `${fmt(s.jornalesPerSec)} Jornales/s${permaLabel}`;
+  }
 
   const cd = s.bonus.cooldown;
   const total = s.bonus.cooldownMax + s.bonus.duration;
@@ -62,7 +64,9 @@ export function renderHUD(s){
 
 /* ---------- TIENDA ---------- */
 export function mountShop(){
-  $shopList = document.getElementById('shopList');
+  $shopList = document.getElementById('shopList') || $shopList;
+  if (!$shopList || shopNodes.size) return;
+  buildShop();
 }
 
 export function mountAchievements(){
@@ -70,68 +74,104 @@ export function mountAchievements(){
 }
 
 export function invalidateShop(){
-  _shopSig = '';
+  if ($shopList) $shopList.innerHTML = '';
+  shopNodes.clear();
 }
 
-export function renderShop(state){
+export function updateShop(state){
+  if (!$shopList) {
+    $shopList = document.getElementById('shopList') || $shopList;
+  }
   if (!$shopList) return;
-  const now = performance.now();
-  if (now - _lastRenderMs < 250) return;
-  _lastRenderMs = now;
+  if (!shopNodes.size) buildShop();
 
-  const sig = upgradesDef.map((def)=>`${def.id}:${getUpgradeLevel(state, def.id)}`).join('|') + '|' + Math.floor(state.jornales) + '|' + Math.floor((state.jornalesPerSec ?? 0) * 100);
-  if (sig === _shopSig) return;
-  _shopSig = sig;
+  const currentJps = state.jornalesPerSec ?? 0;
 
-  const html = upgradesDef.map((def)=>{
-    if (def.unlockJps && (state.jornalesPerSec ?? 0) < def.unlockJps){
-      const ratio = def.unlockJps ? (state.jornalesPerSec ?? 0) / def.unlockJps : 0;
-      if (ratio >= 0.8){
-        return `
-          <div class="item locked" data-id="${def.id}">
-            <div>
-              <h3>${def.nombre}</h3>
-              <p>Desbloquea al alcanzar ${fmt(def.unlockJps)} J/s</p>
-            </div>
-            <div class="row2">
-              <div class="price">🔒</div>
-            </div>
-          </div>
-        `;
+  upgradesDef.forEach((def)=>{
+    const node = shopNodes.get(def.id);
+    if (!node) return;
+
+    if (def.unlockJps && currentJps < def.unlockJps){
+      const ratio = def.unlockJps ? currentJps / def.unlockJps : 0;
+      if (ratio < 0.8){
+        node.root.style.display = 'none';
+        return;
       }
-      return '';
+      node.root.style.display = '';
+      node.root.classList.add('locked');
+      node.levelEl.textContent = '';
+      node.descEl.textContent = `Desbloquea al alcanzar ${fmt(def.unlockJps)} J/s`;
+      node.priceEl.textContent = '🔒';
+      node.buyBtn.disabled = true;
+      node.buyBtn.style.display = 'none';
+      return;
     }
+
+    node.root.style.display = '';
+    node.root.classList.remove('locked');
+
     const nivel = getUpgradeLevel(state, def.id);
     const coste = costeSiguiente(def, nivel);
     const afford = state.jornales >= coste;
-    const desc = def.desc || '';
-    return `
-      <div class="item" data-id="${def.id}">
-        <div>
-          <h3>${def.nombre} <span class="level">Nivel ${nivel}</span></h3>
-          <p>${desc}</p>
-        </div>
-        <div class="row2">
-          <div class="price">Coste ${fmt(coste)}</div>
-          <button type="button" class="buy" data-id="${def.id}" ${afford ? '' : 'disabled'} onclick="window.Astillero && Astillero.buyUpgrade && Astillero.buyUpgrade('${def.id}')">Comprar</button>
-        </div>
-      </div>
-    `;
-  }).join('');
 
-  $shopList.innerHTML = html;
+    node.levelEl.textContent = `Nivel ${nivel}`;
+    node.descEl.textContent = def.desc || '';
+    node.priceEl.textContent = `Coste ${fmt(coste)}`;
+    node.buyBtn.disabled = !afford;
+    node.buyBtn.style.display = '';
+  });
+}
 
-  $shopList.querySelectorAll('button.buy').forEach((btn)=>{
-    btn.addEventListener('click', (ev)=>{
+function buildShop(){
+  if (!$shopList) return;
+
+  $shopList.innerHTML = '';
+  shopNodes.clear();
+
+  upgradesDef.forEach((def)=>{
+    const root = document.createElement('div');
+    root.className = 'item';
+    root.dataset.id = def.id;
+
+    const info = document.createElement('div');
+    const title = document.createElement('h3');
+    title.textContent = def.nombre + ' ';
+    const level = document.createElement('span');
+    level.className = 'level';
+    level.textContent = 'Nivel 0';
+    title.appendChild(level);
+
+    const desc = document.createElement('p');
+    desc.textContent = def.desc || '';
+
+    info.appendChild(title);
+    info.appendChild(desc);
+
+    const row2 = document.createElement('div');
+    row2.className = 'row2';
+    const price = document.createElement('div');
+    price.className = 'price';
+    price.textContent = 'Coste 0';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'buy';
+    btn.textContent = 'Comprar';
+    btn.dataset.id = def.id;
+    btn.addEventListener('click', ()=>{
       if (btn.disabled) return;
-      const id = btn.dataset.id;
-      try {
-        buyUpgrade(id);
-      } catch (err) {
-        console.error(err);
-      }
-      ev.stopPropagation();
+      buyUpgrade(def.id);
     });
+
+    row2.appendChild(price);
+    row2.appendChild(btn);
+
+    root.appendChild(info);
+    root.appendChild(row2);
+    root.style.display = 'none';
+
+    $shopList.appendChild(root);
+    shopNodes.set(def.id, { root, levelEl: level, descEl: desc, priceEl: price, buyBtn: btn });
   });
 }
 

@@ -51,7 +51,7 @@ export function doTap(){
     prog.totalJornales = (prog.totalJornales ?? 0) + gain;
   }
   if (state.settings.audio) audio.playTap();
-  ui.renderHUD?.(state);
+  ui.renderHUD(state);
 }
 export function toggleBonus(){
   if (!state.bonus.active && state.bonus.cooldown<=0){
@@ -92,7 +92,7 @@ export function buyUpgrade(id){
   }
 
   _lastSig = ''; // fuerza redibujar dársena
-  ui.invalidateShop?.();
+  ui.updateShop?.(state);
   if (state.settings.audio) audio.playUpgrade();
 }
 
@@ -130,8 +130,8 @@ function frame(now){
   }
 
   // HUD
-  ui.renderHUD?.(state);
-  ui.renderShop?.(state);
+  ui.renderHUD(state);
+  ui.updateShop?.(state);
 
   // Dársena
   const t = getTotalsForVisuals(state);
@@ -170,8 +170,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
   btnBonus?.addEventListener('click', ()=>{ toggleBonus(); });
 
   // Primera pintura
-  ui.renderHUD?.(state);
-  ui.renderShop?.(state);
+  ui.renderHUD(state);
+  ui.updateShop?.(state);
   ui.updateDarsena?.(getTotalsForVisuals(state));
   ui.renderAchievements?.(state);
 
