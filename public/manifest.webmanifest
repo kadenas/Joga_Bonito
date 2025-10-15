@@ -1,9 +1,9 @@
 {
-  "name": "MUELLE DE REPARACIONES MOSQUERA",
-  "short_name": "Muelle Mosquera",
+  "name": "BARADERO MOSQUERA",
+  "short_name": "Baradero",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "theme_color": "#0B2C5F",
-  "background_color": "#021327"
+  "background_color": "#0B2C5F"
 }
