@@ -24,6 +24,7 @@ export function doTap(){
   state.jornales += gain;
   state.totals.taps++;
   if (state.settings.audio) audio.playTap();
+  ui.renderHUD?.(state);
 }
 export function toggleBonus(){
   if (!state.bonus.active && state.bonus.cooldown<=0){
@@ -111,9 +112,7 @@ window.addEventListener('DOMContentLoaded', ()=>{
   ui.initDarsena?.();
   ui.mountShop?.();
 
-  const btnTap = document.getElementById('btnTap');
   const btnBonus = document.getElementById('btnBonus');
-  btnTap?.addEventListener('click', ()=>{ doTap(); ui.renderHUD?.(state); });
   btnBonus?.addEventListener('click', ()=>{ toggleBonus(); });
 
   // Primera pintura

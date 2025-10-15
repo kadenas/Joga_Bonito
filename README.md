@@ -58,6 +58,13 @@ La sección **DÁRSENA** del `index.html` añade una representación tipo idle g
 
 Las cifras se calculan en `getTotalsForVisuals` (`public/src/main.js`), apoyándose en el helper `getUpgradeLevel` de `public/src/balance.js`. Cada carril es horizontalmente desplazable en pantallas pequeñas y cuenta con un fondo animado de agua, mientras que el panel lateral **Resumen del astillero** muestra los totales sincronizados. Para extender la Dársena añade nuevos símbolos SVG y usa `renderTokens` en `public/src/ui.js` para pintar las filas sin repintados completos.
 
+## UI móvil
+
+- La barra inferior fija agrupa la activación de **Marea viva**, un acceso rápido a la tienda y un acceso directo a los ajustes, respetando las `view-inset`/`safe-area` para no superponer controles del dispositivo.
+- El botón de tap se ha sustituido por un barco SVG grande dentro del HUD. Al tocarlo cabecea con más fuerza, ejecuta `doTap()` y lanza partículas naranjas que simulan remaches sin usar imágenes externas.
+- La Dársena y la Tienda se presentan como acordeones (`<details>`) con la Dársena plegada por defecto en móviles. El contenido de la tienda permanece abierto por accesibilidad.
+- Las partículas y el layout mantienen un enfoque mobile-first con tamaños fluidos (`clamp()`) y animaciones CSS puras.
+
 ## Rendimiento y futuras mejoras
 
 - La UI se actualiza usando `requestAnimationFrame`, mientras el cálculo lógico ocurre cada 100 ms para mantener el consumo reducido.
