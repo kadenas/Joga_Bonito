@@ -1,71 +1,46 @@
-let audioContext;
-let masterGain;
-let enabled = true;
+// Audio WebAudio sintetizado y desbloqueo en primera interacción
+let ctx = null, enabled = true, unlocked = false;
 
-function ensureContext() {
-  if (!audioContext) {
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return null;
-    audioContext = new Ctx();
-    masterGain = audioContext.createGain();
-    masterGain.gain.value = 0.15;
-    masterGain.connect(audioContext.destination);
-  }
-  if (audioContext && audioContext.state === 'suspended') {
-    audioContext.resume();
-  }
-  return audioContext;
-}
+export function setEnabled(on){ enabled = !!on; }
+export function isEnabled(){ return enabled; }
 
-function playTone({ duration = 0.12, frequency = 440, type = 'square' } = {}) {
-  if (!enabled) return;
-  const ctx = ensureContext();
-  if (!ctx) return;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = type;
-  osc.frequency.value = frequency;
-  const now = ctx.currentTime;
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(1, now + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-  osc.connect(gain);
-  gain.connect(masterGain);
-  osc.start(now);
-  osc.stop(now + duration + 0.05);
-}
-
-export function playTap() {
-  const base = 380 + Math.random() * 60;
-  playTone({ frequency: base, duration: 0.1, type: 'sawtooth' });
-}
-
-export function playUpgrade() {
-  const base = 520 + Math.random() * 80;
-  playTone({ frequency: base, duration: 0.18, type: 'triangle' });
-}
-
-export function setEnabled(value) {
-  enabled = value;
-  if (enabled) {
-    ensureContext();
-  }
-  if (masterGain) {
-    masterGain.gain.value = enabled ? 0.15 : 0;
-  }
-}
-
-export function isEnabled() {
-  return enabled;
-}
-
-export function unlockOnInteraction(element) {
-  if (!element) return;
-  const handler = () => {
-    ensureContext();
-    element.removeEventListener('pointerdown', handler);
-    element.removeEventListener('keydown', handler);
+export function initOnFirstInteraction(){
+  if (unlocked) return;
+  const resume = () => {
+    try{
+      if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+      if (ctx.state === 'suspended') ctx.resume();
+      unlocked = true;
+      window.removeEventListener('pointerdown', resume, {capture:true});
+      window.removeEventListener('keydown', resume, {capture:true});
+    }catch{}
   };
-  element.addEventListener('pointerdown', handler, { passive: true });
-  element.addEventListener('keydown', handler);
+  window.addEventListener('pointerdown', resume, {capture:true, once:true});
+  window.addEventListener('keydown', resume, {capture:true, once:true});
+}
+
+function beep(freq=440, dur=0.08, type='square', gain=0.04){
+  if (!enabled) return;
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const t = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, t);
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(gain, t+0.005);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+}
+
+export function playTap(){
+  // variación pequeña para que no canse
+  const f = 420 + Math.random()*60;
+  beep(f, 0.07, 'square', 0.05);
+}
+export function playUpgrade(){
+  beep(320, 0.06, 'sawtooth', 0.05);
+  setTimeout(()=>beep(480, 0.06, 'sawtooth', 0.04), 50);
 }

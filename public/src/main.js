@@ -1,4 +1,5 @@
 import * as ui from './ui.js';
+import * as audio from './audio.js';
 import { upgradesDef, jpsTotal, valorClick, getUpgradeLevel, getDef, costeSiguiente } from './balance.js';
 
 // Estado básico (si ya existe, conserva tus campos)
@@ -12,12 +13,17 @@ export const state = window.__STATE__ || {
   settings: { audio:true, vibrate:true, notation:"abbr" }
 };
 
+// desbloqueo audio en la primera interacción
+audio.initOnFirstInteraction();
+audio.setEnabled(state.settings.audio);
+
 // Lógica de juego
 export function doTap(){
   let gain = valorClick(state);
   if (state.bonus.active) gain *= state.bonus.multiplier;
   state.jornales += gain;
   state.totals.taps++;
+  if (state.settings.audio) audio.playTap();
 }
 export function toggleBonus(){
   if (!state.bonus.active && state.bonus.cooldown<=0){
@@ -54,6 +60,7 @@ export function buyUpgrade(id){
 
   _lastSig = ''; // fuerza redibujar dársena
   ui.invalidateShop?.();
+  if (state.settings.audio) audio.playUpgrade();
 }
 
 // Totales para la dársena
@@ -106,8 +113,8 @@ window.addEventListener('DOMContentLoaded', ()=>{
 
   const btnTap = document.getElementById('btnTap');
   const btnBonus = document.getElementById('btnBonus');
-  btnTap?.addEventListener('click', ()=>{ doTap(); ui.renderHUD?.(state); }, {passive:true});
-  btnBonus?.addEventListener('click', ()=>{ toggleBonus(); }, {passive:true});
+  btnTap?.addEventListener('click', ()=>{ doTap(); ui.renderHUD?.(state); });
+  btnBonus?.addEventListener('click', ()=>{ toggleBonus(); });
 
   // Primera pintura
   ui.renderHUD?.(state);

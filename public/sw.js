@@ -1,14 +1,8 @@
-// Simple cache-first SW
-const CACHE_NAME = 'astillero-v6'; // subir versión para invalidar caché viejo
+// Subir versión para invalidar caché
+const CACHE_NAME = 'astillero-v7';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/src/main.js',
-  '/src/ui.js',
-  '/src/balance.js',
-  '/src/audio.js',
-  '/src/save.js'
+  '/', '/index.html', '/manifest.webmanifest',
+  '/src/main.js', '/src/ui.js', '/src/balance.js', '/src/audio.js', '/src/save.js'
 ];
 
 self.addEventListener('install', e=>{
