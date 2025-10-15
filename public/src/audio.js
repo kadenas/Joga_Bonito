@@ -1,8 +1,7 @@
-// Audio WebAudio sintetizado y desbloqueo en primera interacción
-let ctx = null, enabled = true, unlocked = false;
-
-export function setEnabled(on){ enabled = !!on; }
-export function isEnabled(){ return enabled; }
+// Audio con control real de mute
+let ctx = null;
+let enabled = true;
+let unlocked = false;
 
 export function initOnFirstInteraction(){
   if (unlocked) return;
@@ -11,13 +10,14 @@ export function initOnFirstInteraction(){
       if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
       if (ctx.state === 'suspended') ctx.resume();
       unlocked = true;
-      window.removeEventListener('pointerdown', resume, {capture:true});
-      window.removeEventListener('keydown', resume, {capture:true});
     }catch{}
   };
-  window.addEventListener('pointerdown', resume, {capture:true, once:true});
-  window.addEventListener('keydown', resume, {capture:true, once:true});
+  window.addEventListener('pointerdown', resume, {once:true, capture:true});
+  window.addEventListener('keydown', resume, {once:true, capture:true});
 }
+
+export function setEnabled(on){ enabled = !!on; }
+export function isEnabled(){ return !!enabled; }
 
 function beep(freq=440, dur=0.08, type='square', gain=0.04){
   if (!enabled) return;
@@ -35,18 +35,6 @@ function beep(freq=440, dur=0.08, type='square', gain=0.04){
   osc.stop(t + dur + 0.05);
 }
 
-export function playTap(){
-  // variación pequeña para que no canse
-  const f = 420 + Math.random()*60;
-  beep(f, 0.07, 'square', 0.05);
-}
-export function playUpgrade(){
-  beep(320, 0.06, 'sawtooth', 0.05);
-  setTimeout(()=>beep(480, 0.06, 'sawtooth', 0.04), 50);
-}
-
-export function playAchievement(){
-  beep(440, 0.12, 'sine', 0.06);
-  setTimeout(()=>beep(660, 0.12, 'sine', 0.05), 110);
-  setTimeout(()=>beep(880, 0.14, 'sine', 0.045), 220);
-}
+export function playTap(){ const f = 420 + Math.random()*60; beep(f, 0.07, 'square', 0.05); }
+export function playUpgrade(){ beep(320, 0.06, 'sawtooth', 0.05); setTimeout(()=>beep(480, 0.06, 'sawtooth', 0.04), 50); }
+export function playAchievement(){ beep(440,0.06,'triangle',0.06); setTimeout(()=>beep(660,0.06,'triangle',0.06),60); setTimeout(()=>beep(880,0.08,'triangle',0.06),120); }
