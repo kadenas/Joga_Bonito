@@ -30,7 +30,7 @@
     footer{font-size:clamp(12px,3vw,15px);opacity:.7;padding-top:24px}
     main{flex:1;width:100%;max-width:960px;margin:0 auto;padding:20px 16px 24px;display:flex;flex-direction:column;gap:20px}
     .card{background:var(--panel);border-radius:20px;padding:18px;box-shadow:0 16px 34px rgba(0,0,0,.36)}
-    #hud{display:grid;gap:16px;justify-items:center;text-align:center;padding:28px 18px 36px}
+    #hud{display:grid;gap:16px;justify-items:center;text-align:center;padding:28px 18px 36px;position:relative}
     #contador{font-size:clamp(28px,7vw,44px);font-weight:800}
     #jps{opacity:.9;font-size:clamp(14px,3.8vw,18px)}
     .meter{width:100%;height:14px;border-radius:999px;background:#112f55;overflow:hidden;position:relative}
@@ -195,12 +195,24 @@
     @media (prefers-reduced-motion:reduce){
       *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
     }
+    #muteBtn{position:absolute;right:10px;top:10px;border:0;background:#123867;color:#e6f1ff;padding:8px 10px;border-radius:10px;font-weight:700}
+    details.panel{background:#0b2c5f;border-radius:14px;padding:12px;box-shadow:0 8px 0 rgba(0,0,0,.25);margin:14px 0}
+    details.panel>summary{cursor:pointer;list-style:none;font-weight:800}
+    #achList .ach{display:grid;grid-template-columns:1fr auto;gap:8px;background:#0f355f;padding:10px;border-radius:12px;margin:8px 0}
+    .ach .state{font-weight:800;padding:6px 10px;border-radius:10px;background:#123867}
+    .ach.locked{opacity:.6}
+    .ach .desc{opacity:.9;font-size:13px;margin-top:4px}
+    .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    textarea#exportBox{width:100%;min-height:110px;border-radius:10px;border:0;padding:8px;background:#0f355f;color:#e6f1ff}
+    .ok{background:#2d7a46}
+    .warn{background:#8a5c0a}
   </style>
 </head>
 <body>
   <header><h1>BARADERO MOSQUERA</h1></header>
   <main>
     <section class="card" id="hud">
+      <button id="muteBtn" aria-pressed="false">🔊</button>
       <div id="contador" aria-live="polite">0</div>
       <div id="jps">0 Jornales/s</div>
       <button id="tapBoat" aria-label="Remachar casco" type="button">
@@ -260,38 +272,24 @@
       </div>
     </details>
 
-    <details id="achPanel">
-      <summary>Logros</summary>
+    <details class="panel" id="achPanel" open>
+      <summary>Logros <span id="achCount" style="opacity:.8"></span></summary>
       <div id="achList" aria-live="polite"></div>
+
+      <h3 style="margin-top:12px">Exportar / Importar progreso</h3>
+      <div class="controls">
+        <button id="btnExport" class="btn ok" type="button">Exportar</button>
+        <button id="btnImport" class="btn warn" type="button">Importar</button>
+      </div>
+      <textarea id="exportBox" placeholder="Aquí verás el JSON al exportar o pega aquí para importar"></textarea>
     </details>
-
-    <section class="panel settings" id="settingsPanel">
-      <h2>Ajustes</h2>
-      <label>Audio <input type="checkbox" id="audioToggle" checked></label>
-      <label>Vibración <input type="checkbox" id="vibrationToggle" checked></label>
-      <div class="grid">
-        <button class="btn secondary" id="exportButton" type="button">Exportar progreso</button>
-        <button class="btn secondary" id="importButton" type="button">Importar progreso</button>
-      </div>
-    </section>
   </main>
-  <footer>v1.1.0 — Dársena SVG animada</footer>
-
-  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-    <div class="modal-content">
-      <h3 id="modalTitle">Exportar progreso</h3>
-      <textarea id="modalTextarea" readonly></textarea>
-      <div class="grid" style="display:grid;gap:10px">
-        <button class="btn secondary" id="modalCopy" type="button">Copiar</button>
-        <button class="btn secondary" id="modalClose" type="button">Cerrar</button>
-      </div>
-    </div>
-  </div>
+  <footer>v1.2.0 — Visor de logros y mejoras</footer>
 
   <nav id="bottomBar" aria-label="Acciones principales">
     <button type="button" class="nav-btn" id="btnBonus">Marea viva</button>
     <button type="button" class="nav-btn" id="navShop">Tiendas</button>
-    <button type="button" class="nav-btn" id="navSettings">Ajustes</button>
+    <button type="button" class="nav-btn" id="navLogros">Logros</button>
   </nav>
 
   <svg id="sprite-defs" width="0" height="0" aria-hidden="true" style="position:absolute">
@@ -330,10 +328,10 @@
     </symbol>
   </svg>
 
-  <script type="module" src="/src/main.js?v=13"></script>
+  <script type="module" src="/src/main.js?v=14"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=13').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=14').catch(()=>{});
     }
   </script>
 </body>
