@@ -450,12 +450,13 @@ function getEventPoint(evt){
 }
 
 // util
-function fmt(n){
-  if (!isFinite(n)) return '∞';
-  if (Math.abs(n) >= 1e12) return n.toExponential(2).replace('+','');
-  const a = Math.abs(n);
-  if (a>=1e9) return (n/1e9).toFixed(2)+'B';
-  if (a>=1e6) return (n/1e6).toFixed(2)+'M';
-  if (a>=1e3) return (n/1e3).toFixed(2)+'K';
-  return Math.floor(n).toString();
+function fmt(value){
+  const num = Number(value);
+  if (!Number.isFinite(num)) return '0';
+  const abs = Math.abs(num);
+  if (abs >= 1e12) return num.toExponential(2).replace('+','');
+  if (abs >= 1e9) return (num/1e9).toFixed(2)+'B';
+  if (abs >= 1e6) return (num/1e6).toFixed(2)+'M';
+  if (abs >= 1e3) return (num/1e3).toFixed(2)+'K';
+  return Math.floor(num).toString();
 }
