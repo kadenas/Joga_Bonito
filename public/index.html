@@ -188,11 +188,11 @@
   </svg>
 
   <!-- Carga del entrypoint como módulo con versión para evitar caché SW -->
-  <script type="module" src="/src/main.js?v=4"></script>
+  <script type="module" src="/src/main.js?v=5"></script>
   <script>
     // Registro del SW (si falla, no bloquea el juego)
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=4').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=5').catch(()=>{});
     }
   </script>
 </body>
