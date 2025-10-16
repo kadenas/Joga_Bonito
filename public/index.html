@@ -39,9 +39,13 @@
     #tapBoat{
       position:relative;
       z-index:5;
+      pointer-events:auto;
+      border:0;
+      background:none;
+      padding:0;
+      touch-action:manipulation;
       width:clamp(120px,36vw,220px);
       aspect-ratio:1;
-      border:0;
       border-radius:50%;
       background:radial-gradient(circle at 50% 45%,rgba(230,241,255,.18) 0,rgba(11,44,95,.8) 70%,rgba(4,16,35,.85) 100%);
       box-shadow:0 18px 40px rgba(0,0,0,.45);
@@ -50,8 +54,6 @@
       cursor:pointer;
       animation:bobTap 4s ease-in-out infinite;
       transition:transform .18s ease;
-      touch-action:manipulation;
-      pointer-events:auto;
     }
     #tapBoat:focus-visible{outline:3px solid rgba(255,255,255,.6);outline-offset:6px}
     #tapBoat svg{width:68%;height:68%;transition:transform .2s ease;pointer-events:none}
@@ -341,10 +343,10 @@
   </svg>
 
   <div id="popupRoot" aria-live="polite" aria-atomic="true"></div>
-  <script type="module" src="/src/main.js?v=16"></script>
+  <script type="module" src="/src/main.js?v=18"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=16').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=18').catch(()=>{});
     }
   </script>
 </body>
