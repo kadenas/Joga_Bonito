@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
   <meta name="theme-color" content="#0B2C5F"/>
   <link rel="manifest" href="/manifest.webmanifest"/>
-  <title>BARADERO MOSQUERA</title>
+  <title>Varadero Mosquera</title>
   <style>
     :root{
       --bg:#061e3c; --panel:#0b2c5f; --accent:#ff8c00; --ink:#e6f1ff;
@@ -58,8 +58,18 @@
     #tapBoat.pop{animation:none;transform:translateY(2px) rotate(-1.5deg)}
     #tapBoat.pop svg{animation:popPitch .2s ease forwards}
     #tapFx{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:6}
-    .tapFloat{position:absolute;color:#ffd27a;font-weight:800;letter-spacing:.02em;pointer-events:none;transform:translate(-50%,-20%);animation:floatUp .7s ease-out forwards;text-shadow:0 1px 0 rgba(0,0,0,.6)}
-    @keyframes floatUp{to{transform:translate(-50%,-56%);opacity:0}}
+    .tapFloat{
+      position:absolute;
+      color:#ffd27a;
+      font-weight:900;
+      font-size:clamp(22px,6vw,38px);
+      letter-spacing:.02em;
+      pointer-events:none;
+      transform:translate(-50%,-18%);
+      animation:floatUp .85s ease-out forwards;
+      text-shadow:0 2px 0 rgba(0,0,0,.65);
+    }
+    @keyframes floatUp{to{transform:translate(-50%,-60px);opacity:0}}
     .particle{
       position:absolute;
       width:6px;height:6px;
@@ -142,7 +152,6 @@
     .btn.secondary{background:#123867;color:var(--ink)}
     .btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.32)}
     .btn:disabled{opacity:.55;box-shadow:none;transform:none;cursor:not-allowed}
-    #btnTapFallback{position:relative;display:block;margin:12px auto 0;max-width:280px;overflow:visible}
     .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,7,16,.72);backdrop-filter:blur(4px);padding:16px;z-index:30}
     .modal.active{display:flex}
     .modal-content{background:#091b36;border-radius:18px;padding:20px;display:grid;gap:12px;max-width:420px;width:100%}
@@ -209,7 +218,7 @@
   </style>
 </head>
 <body>
-  <header><h1>BARADERO MOSQUERA</h1></header>
+  <header><h1>Varadero Mosquera</h1></header>
   <main>
     <section class="card" id="hud">
       <button id="muteBtn" aria-pressed="false">🔊</button>
@@ -223,7 +232,6 @@
         </svg>
         <div id="tapFx" aria-hidden="true"></div>
       </button>
-      <button id="btnTapFallback" class="btn" type="button" hidden aria-hidden="true">Remachar</button>
       <div class="meter" aria-hidden="true"><div class="bar" id="bonusBar"></div></div>
       <div id="bonusText">Marea viva lista</div>
     </section>
@@ -328,10 +336,10 @@
     </symbol>
   </svg>
 
-  <script type="module" src="/src/main.js?v=14"></script>
+  <script type="module" src="/src/main.js?v=15"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=14').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=15').catch(()=>{});
     }
   </script>
 </body>

@@ -8,15 +8,15 @@ let $shopList;
 const shopNodes = new Map();
 let $achList,$achCount;
 let _achSig = '';
-let $tapBoat,$tapFx,$btnTapFallback;
+let $tapBoat,$tapFx;
 let _popTimer = 0;
+let _lastPointerTs = 0;
 
 export function initUI(){
   $contador = document.getElementById('contador') || $contador;
   $jps = document.getElementById('jps') || $jps;
   $bonusBar = document.getElementById('bonusBar') || $bonusBar;
   $bonusText = document.getElementById('bonusText') || $bonusText;
-  $btnTapFallback = document.getElementById('btnTapFallback') || $btnTapFallback;
 
   initTapBoat();
 
@@ -243,26 +243,10 @@ export function updateDarsena({barcos,obreros,gruas}){
 export function initTapBoat(){
   $tapBoat = document.getElementById('tapBoat') || $tapBoat;
   $tapFx = document.getElementById('tapFx') || $tapFx;
-  $btnTapFallback = document.getElementById('btnTapFallback') || $btnTapFallback;
-
-  if ($btnTapFallback && !$btnTapFallback.dataset.tapReady){
-    $btnTapFallback.dataset.tapReady = '1';
-    $btnTapFallback.addEventListener('click', (evt)=>{
-      evt.preventDefault?.();
-      const gain = doTap();
-      showTapFloat(gain, evt);
-    });
-  }
-  if ($btnTapFallback){
-    const hasBoat = !!$tapBoat;
-    $btnTapFallback.hidden = hasBoat;
-    $btnTapFallback.setAttribute('aria-hidden', hasBoat ? 'true' : 'false');
-  }
 
   if (!$tapBoat || $tapBoat.dataset.tapReady) return;
   $tapBoat.dataset.tapReady = '1';
 
-  let suppressClick = false;
   const triggerTap = (evt)=>{
     const count = 10 + Math.floor(Math.random()*11);
     spawnParticles(evt, count);
@@ -280,18 +264,9 @@ export function initTapBoat(){
 
   const handlePointer = (evt)=>{
     if (evt.button !== undefined && evt.button !== 0) return;
-    suppressClick = true;
-    window.setTimeout(()=>{ suppressClick = false; }, 280);
-    evt.stopPropagation?.();
-    evt.preventDefault?.();
-    triggerTap(evt);
-  };
-
-  const handleClick = (evt)=>{
-    if (suppressClick){
-      suppressClick = false;
-      return;
-    }
+    const now = performance.now();
+    if (now - _lastPointerTs < 140) return;
+    _lastPointerTs = now;
     evt.stopPropagation?.();
     evt.preventDefault?.();
     triggerTap(evt);
@@ -304,8 +279,11 @@ export function initTapBoat(){
     }
   };
 
-  $tapBoat.addEventListener('pointerdown', handlePointer);
-  $tapBoat.addEventListener('click', handleClick);
+  $tapBoat.addEventListener('pointerdown', handlePointer, {passive:false});
+  $tapBoat.addEventListener('click', (evt)=>{
+    evt.preventDefault();
+    evt.stopPropagation();
+  }, {capture:true});
   $tapBoat.addEventListener('keydown', handleKey);
 }
 
@@ -335,28 +313,22 @@ function spawnParticles(evt, n){
 }
 
 function showTapFloat(value, evt){
-  const host = ($tapFx = document.getElementById('tapFx') || $tapFx) || (evt?.currentTarget instanceof HTMLElement ? evt.currentTarget : $btnTapFallback);
+  const host = $tapFx = document.getElementById('tapFx') || $tapFx;
   if (!host) return;
-  const safe = Math.max(0, Number(value) || 0);
-  const amount = Math.max(1, Math.round(safe));
+  const safe = Math.max(0, Number(value)||0);
   const node = document.createElement('div');
   node.className = 'tapFloat';
-  node.textContent = `+${fmt(amount)}`;
+  node.textContent = `+${fmt(safe)}`;
 
-  if (host === $tapFx){
-    const rect = host.getBoundingClientRect();
-    const point = getEventPoint(evt);
-    const left = point ? point.x - rect.left : rect.width / 2;
-    const top = point ? point.y - rect.top : rect.height / 2;
-    node.style.left = `${left}px`;
-    node.style.top = `${top}px`;
-  } else {
-    node.style.left = '50%';
-    node.style.top = '50%';
-  }
+  const rect = host.getBoundingClientRect();
+  const point = getEventPoint(evt);
+  const left = point ? point.x - rect.left : rect.width / 2;
+  const top = point ? point.y - rect.top : rect.height / 2;
+  node.style.left = `${left}px`;
+  node.style.top = `${top}px`;
 
   host.appendChild(node);
-  window.setTimeout(()=>{ node.remove(); }, 720);
+  window.setTimeout(()=>{ node.remove(); }, 850);
 }
 
 function getEventPoint(evt){
