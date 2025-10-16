@@ -1,9 +1,10 @@
 import { upgradesDef, costeSiguiente, getUpgradeLevel } from './balance.js';
-import { buyUpgrade } from './main.js';
+import { buyUpgrade, doTap } from './main.js';
 import * as audio from './audio.js';
 
 let $contador,$jps,$bonusBar,$bonusText,$tapBoat,$tapFx,$popupRoot,$dock;
 let $shopList; const shopNodes = new Map();
+let _lastPointerTs = 0;
 
 export function initUI(){
   $contador  = document.getElementById('contador')  || $contador;
@@ -15,7 +16,47 @@ export function initUI(){
   $popupRoot = document.getElementById('popupRoot') || $popupRoot;
   $dock      = document.getElementById('dock')      || $dock;
 
-  // Swallow ghost clicks (ya hecho en versiones previas si aplica)
+  wireTapBoat();
+}
+
+function wireTapBoat(){
+  if (!$tapBoat || $tapBoat.__wired) return;
+
+  const onTap = ev=>{
+    const now = performance.now();
+    if (now - _lastPointerTs < 140) return;
+    _lastPointerTs = now;
+
+    ev.preventDefault?.();
+    ev.stopPropagation?.();
+
+    const gain = doTap();
+    showTapFloat(gain);
+  };
+
+  $tapBoat.addEventListener('pointerdown', onTap, { passive:false });
+  $tapBoat.addEventListener('click', e=>{ e.preventDefault(); e.stopPropagation(); }, { capture:true });
+  $tapBoat.__wired = true;
+
+  if (!$tapFx){
+    const fx = document.createElement('div');
+    fx.id = 'tapFx';
+    $tapBoat.parentElement?.appendChild(fx);
+    $tapFx = fx;
+  }
+}
+
+export function showTapFloat(gain){
+  if (!$tapFx) return;
+  const n = document.createElement('div');
+  n.className = 'tapFloat';
+  const g = (typeof gain === 'number' && isFinite(gain)) ? gain : 0;
+  n.textContent = `+${fmt(g)}`;
+  n.style.left = '50%';
+  n.style.top = '50%';
+  n.style.transform = 'translate(-50%,-10%)';
+  $tapFx.appendChild(n);
+  setTimeout(()=> n.remove(), 900);
 }
 
 export function renderHUD(s){
