@@ -72,15 +72,20 @@
       text-shadow:0 2px 0 rgba(0,0,0,.65);
     }
     @keyframes floatUp{to{transform:translate(-50%,-60px);opacity:0}}
-    .particle{
+    .bolt{
       position:absolute;
-      width:6px;height:6px;
+      width:8px;height:8px;
       border-radius:2px;
       background:#FF8C00;
-      box-shadow:0 0 0 1px #0B2C5F inset;
+      box-shadow:0 0 0 1px #0B2C5F inset,0 0 8px rgba(255,140,0,.35);
       pointer-events:none;
-      animation:fly 700ms ease-out forwards;
+      transform:translate(0,0) rotate(0deg);
+      opacity:1;
+      animation:boltFly 720ms ease-out forwards;
     }
+    .bolt.r1{width:6px;height:6px}
+    .bolt.r2{width:10px;height:10px;border-radius:3px}
+    @keyframes boltFly{to{transform:translate(var(--dx),calc(-1 * var(--dy))) rotate(var(--rot));opacity:0}}
     details{
       background:var(--panel);
       border-radius:20px;
@@ -191,9 +196,9 @@
     .nav-btn:nth-child(2){background:linear-gradient(180deg,#77a4ff 0%,#2853b5 100%);color:#e6f1ff}
     .nav-btn:nth-child(3){background:linear-gradient(180deg,#7affd9 0%,#1f8a76 100%);color:#04121f}
     .nav-btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.35)}
+    #bottomBar button[aria-current="true"]{filter:brightness(1.15)}
     @keyframes bobTap{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
     @keyframes popPitch{0%{transform:rotate(0) scale(1)}70%{transform:rotate(-6deg) scale(.96)}100%{transform:rotate(0) scale(1)}}
-    @keyframes fly{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--dx), calc(-1 * var(--dy))) rotate(var(--rot))}}
     @keyframes bob{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-.3deg)}100%{transform:translateY(0) rotate(0)}}
     @keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.2deg)}}
     @keyframes waterShift{from{background-position-x:0}to{background-position-x:-260px}}
@@ -240,6 +245,7 @@
       </button>
       <div class="meter" aria-hidden="true"><div class="bar" id="bonusBar"></div></div>
       <div id="bonusText">Marea viva lista</div>
+      <button id="btnBonus" type="button" class="btn secondary" style="max-width:220px;margin-top:8px">Marea viva</button>
     </section>
 
     <details id="dockPanel">
@@ -286,24 +292,26 @@
       </div>
     </details>
 
-    <details class="panel" id="achPanel" open>
+    <details class="panel" id="achPanel">
       <summary>Logros <span id="achCount" style="opacity:.8"></span></summary>
-      <div id="achList" aria-live="polite"></div>
+      <div class="panel-body">
+        <div id="achList" aria-live="polite"></div>
 
-      <h3 style="margin-top:12px">Exportar / Importar progreso</h3>
-      <div class="controls">
-        <button id="btnExport" class="btn ok" type="button">Exportar</button>
-        <button id="btnImport" class="btn warn" type="button">Importar</button>
+        <h3 style="margin:12px 0 0">Exportar / Importar progreso</h3>
+        <div class="controls">
+          <button id="btnExport" class="btn ok" type="button">Exportar</button>
+          <button id="btnImport" class="btn warn" type="button">Importar</button>
+        </div>
+        <textarea id="exportBox" placeholder="Aquí verás el JSON al exportar o pega aquí para importar"></textarea>
       </div>
-      <textarea id="exportBox" placeholder="Aquí verás el JSON al exportar o pega aquí para importar"></textarea>
     </details>
   </main>
   <footer>v1.2.0 — Visor de logros y mejoras</footer>
 
   <nav id="bottomBar" aria-label="Acciones principales">
-    <button type="button" class="nav-btn" id="btnBonus">Marea viva</button>
-    <button type="button" class="nav-btn" id="navShop">Tiendas</button>
-    <button type="button" class="nav-btn" id="navLogros">Logros</button>
+    <button type="button" class="nav-btn" id="nav-bonus">Marea viva</button>
+    <button type="button" class="nav-btn" id="nav-shop">Tiendas</button>
+    <button type="button" class="nav-btn" id="nav-ach">Logros</button>
   </nav>
 
   <svg id="sprite-defs" width="0" height="0" aria-hidden="true" style="position:absolute">
@@ -343,10 +351,10 @@
   </svg>
 
   <div id="popupRoot" aria-live="polite" aria-atomic="true"></div>
-  <script type="module" src="/src/main.js?v=18"></script>
+  <script type="module" src="/src/main.js?v=20"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=18').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=20').catch(()=>{});
     }
   </script>
 </body>

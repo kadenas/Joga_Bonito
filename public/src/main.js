@@ -31,6 +31,16 @@ export function doTap(){
   return gain;
 }
 
+export function toggleBonus(){
+  if (!state.bonus.active && state.bonus.cooldown <= 0){
+    state.bonus.active = true;
+    state.bonus.remaining = state.bonus.duration;
+    state.bonus.cooldown = state.bonus.cooldownMax + state.bonus.duration;
+    ui.renderHUD(state);
+    save.save(state);
+  }
+}
+
 export function buyUpgrade(id){
   const u = state.upgrades.find(x=>x.id===id);
   const def = getDef(id);
@@ -82,7 +92,11 @@ function frame(now){
     if (!already && isAchieved(state, ach)){
       state.achievements.claimed[ach.id]=true;
       ui.showAchievementToast?.(ach);
+      ui.renderAchievements?.(state);
     }
+  }
+  if (document.getElementById('achPanel')?.open){
+    ui.renderAchievements?.(state);
   }
   ui.renderHUD(state); ui.updateShop(state);
   save.save(state);
@@ -91,8 +105,8 @@ function frame(now){
 
 window.addEventListener('DOMContentLoaded', ()=>{
   ui.initUI(); ui.buildShop();
-  ui.renderHUD(state); ui.updateShop(state);
+  ui.renderHUD(state); ui.updateShop(state); ui.renderAchievements(state);
   requestAnimationFrame(frame);
 });
 
-Object.assign(window.Astillero,{ doTap, buyUpgrade });
+Object.assign(window.Astillero,{ doTap, buyUpgrade, toggleBonus });
