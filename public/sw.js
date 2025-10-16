@@ -1,6 +1,6 @@
-const CACHE_NAME = 'baradero-mosquera-v14';
+const CACHE_NAME = 'varadero-mosquera-v15';
 const ASSETS = ['/', '/index.html', '/manifest.webmanifest',
-  '/src/main.js?v=14', '/src/ui.js', '/src/balance.js', '/src/audio.js', '/src/save.js'
+  '/src/main.js?v=15', '/src/ui.js', '/src/balance.js', '/src/audio.js', '/src/save.js'
 ];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(ASSETS)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.map(n=>n!==CACHE_NAME&&caches.delete(n)))));self.clients.claim();});

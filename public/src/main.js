@@ -28,10 +28,13 @@ export function doTap(){
   gain *= (state.bonus.permaMult||1);
   state.jornales = Number(state.jornales) + gain;
   state.totals.taps = (state.totals.taps||0) + 1;
+  state.totals.acumulados = (state.totals.acumulados||0) + gain;
   state.achievements.progress.taps++;
+  state.achievements.progress.totalJornales = (state.achievements.progress.totalJornales||0) + gain;
   if (state.settings.audio && audio.isEnabled()) audio.playTap();
   ui.renderHUD(state); ui.updateShop(state); ui.renderAchievements(state);
   save.save(state);
+  return gain;
 }
 
 export function toggleBonus(){
@@ -60,9 +63,9 @@ export function buyUpgrade(id){
 // Dársena (si la usas)
 export function getTotalsForVisuals(s){
   const sumNiv = (s.upgrades||[]).reduce((a,u)=>a+(Number(u.nivel)||0),0);
-  const barcos = Math.min(20, Math.floor(sumNiv/5));
-  const obreros = getUpgradeLevel(s,'aprendices');
-  const gruas = Math.floor((getUpgradeLevel(s,'equipo') + getUpgradeLevel(s,'capataz'))/3);
+  const barcos = Math.min(24, Math.floor(sumNiv/4));
+  const obreros = getUpgradeLevel(s,'aprendices') + getUpgradeLevel(s,'capataz') + Math.floor(getUpgradeLevel(s,'taller')/2);
+  const gruas = getUpgradeLevel(s,'portrico') + Math.floor((getUpgradeLevel(s,'equipo') + getUpgradeLevel(s,'soldadura'))/2);
   return { barcos, obreros, gruas };
 }
 
