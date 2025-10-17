@@ -2,237 +2,122 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no"/>
   <meta name="theme-color" content="#0B2C5F"/>
   <link rel="manifest" href="/manifest.webmanifest"/>
   <title>Varadero Mosquera</title>
   <style>
     :root{
-      --bg:#061e3c; --panel:#0b2c5f; --accent:#ff8c00; --ink:#e6f1ff;
-      --muted:#5f7aa1; --chip:#123867; --safe-bottom:env(view-inset-bottom, env(safe-area-inset-bottom, 0px));
+      --bg:#061e3c; --panel:#0b2c5f; --accent:#ff8c00; --ink:#e6f1ff; --muted:#5f7aa1;
+      --chip:#123867; --radius:18px; --pad:clamp(12px,3vw,22px);
     }
     *{box-sizing:border-box}
     body{
-      margin:0;
-      background:radial-gradient(1200px 600px at 50% -20%,#103a72 0,#061e3c 60%,#051528 100%);
-      color:var(--ink);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
-      min-height:100vh;
-      display:flex;
-      flex-direction:column;
-      padding-top:env(view-inset-top, env(safe-area-inset-top, 0px));
-      padding-left:env(view-inset-left, env(safe-area-inset-left, 0px));
-      padding-right:env(view-inset-right, env(safe-area-inset-right, 0px));
-      padding-bottom:calc(96px + var(--safe-bottom));
+      margin:0; min-height:100vh; background:radial-gradient(1200px 600px at 50% -20%,#103a72 0,#061e3c 60%,#051528 100%);
+      color:var(--ink); font-family:system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+      display:flex; flex-direction:column; padding-top:env(safe-area-inset-top);
     }
-    header,footer{display:flex;justify-content:center;align-items:center;padding:18px 16px 12px}
-    header h1{letter-spacing:0.28em;margin:0;font-size:clamp(18px,5vw,32px)}
-    footer{font-size:clamp(12px,3vw,15px);opacity:.7;padding-top:24px}
-    main{flex:1;width:100%;max-width:960px;margin:0 auto;padding:20px 16px 24px;display:flex;flex-direction:column;gap:20px}
-    .card{background:var(--panel);border-radius:20px;padding:18px;box-shadow:0 16px 34px rgba(0,0,0,.36)}
-    #hud{display:grid;gap:16px;justify-items:center;text-align:center;padding:28px 18px 36px;position:relative}
-    #contador{font-size:clamp(28px,7vw,44px);font-weight:800}
-    #jps{opacity:.9;font-size:clamp(14px,3.8vw,18px)}
-    .meter{width:100%;height:14px;border-radius:999px;background:#112f55;overflow:hidden;position:relative}
-    .meter>.bar{position:absolute;inset:0;background:linear-gradient(90deg,#ffd964 0%,var(--accent) 100%);width:0%;transition:width .25s ease}
-    #bonusText{font-size:clamp(12px,3.2vw,15px);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-    #tapBoat{
-      position:relative;
-      z-index:5;
-      pointer-events:auto;
-      border:0;
-      background:none;
-      padding:0;
-      touch-action:manipulation;
-      width:clamp(120px,36vw,220px);
-      aspect-ratio:1;
-      border-radius:50%;
-      background:radial-gradient(circle at 50% 45%,rgba(230,241,255,.18) 0,rgba(11,44,95,.8) 70%,rgba(4,16,35,.85) 100%);
-      box-shadow:0 18px 40px rgba(0,0,0,.45);
-      display:grid;
-      place-items:center;
-      cursor:pointer;
-      animation:bobTap 4s ease-in-out infinite;
-      transition:transform .18s ease;
-    }
-    #tapBoat:focus-visible{outline:3px solid rgba(255,255,255,.6);outline-offset:6px}
-    #tapBoat svg{width:68%;height:68%;transition:transform .2s ease;pointer-events:none}
-    #tapBoat.pop{animation:none;transform:translateY(2px) rotate(-1.5deg)}
-    #tapBoat.pop svg{animation:popPitch .2s ease forwards}
-    #tapFx{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:6}
-    .tapFloat{
-      position:absolute;
-      color:#ffd27a;
-      font-weight:900;
-      font-size:clamp(22px,6vw,38px);
-      letter-spacing:.02em;
-      pointer-events:none;
-      transform:translate(-50%,-18%);
-      animation:floatUp .85s ease-out forwards;
-      text-shadow:0 2px 0 rgba(0,0,0,.65);
-    }
-    @keyframes floatUp{to{transform:translate(-50%,-60px);opacity:0}}
-    .bolt{
-      position:absolute;
-      width:8px;height:8px;
-      border-radius:2px;
-      background:#FF8C00;
-      box-shadow:0 0 0 1px #0B2C5F inset,0 0 8px rgba(255,140,0,.35);
-      pointer-events:none;
-      transform:translate(0,0) rotate(0deg);
-      opacity:1;
-      animation:boltFly 720ms ease-out forwards;
-    }
-    .bolt.r1{width:6px;height:6px}
-    .bolt.r2{width:10px;height:10px;border-radius:3px}
-    @keyframes boltFly{to{transform:translate(var(--dx),calc(-1 * var(--dy))) rotate(var(--rot));opacity:0}}
-    details{
-      background:var(--panel);
-      border-radius:20px;
-      box-shadow:0 16px 34px rgba(0,0,0,.32);
-      overflow:hidden;
-    }
-    details>summary{
-      padding:18px 22px;
-      font-size:clamp(16px,4.4vw,20px);
-      letter-spacing:.12em;
-      text-transform:uppercase;
-      color:rgba(230,241,255,.85);
-      cursor:pointer;
-      list-style:none;
-    }
-    details>summary::-webkit-details-marker{display:none}
-    details[open]>summary{border-bottom:1px solid rgba(230,241,255,.12)}
-    .panel-body{padding:20px 22px;display:grid;gap:20px}
-    #darsenaWrap{display:grid;gap:16px}
-    #darsena{background:#0f355f;border-radius:18px;padding:16px;box-shadow:inset 0 0 0 1px rgba(230,241,255,.12);position:relative}
-    #dock{display:grid;gap:14px;position:relative;z-index:1}
-    .row{position:relative;height:104px;border-radius:16px;background:#0f355f;overflow-x:auto;overflow-y:hidden;z-index:1}
-    .row .tokens{position:relative;white-space:nowrap;padding:16px 12px;display:inline-flex;align-items:flex-end}
-    .row::-webkit-scrollbar{height:6px}
-    .row::-webkit-scrollbar-thumb{background:rgba(230,241,255,.25);border-radius:3px}
-    .row .tokens::after{content:"";display:block;width:12px;height:1px}
-    .label-row{position:absolute;left:16px;top:12px;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:rgba(230,241,255,.6)}
-    .water{position:absolute;inset:0;opacity:.18;background:linear-gradient(0deg,rgba(255,255,255,.0) 0%,rgba(255,255,255,.2) 100%);
-      mask:radial-gradient(60px 12px at 0 60%,#000 98%,transparent 102%) repeat-x;animation:waterShift 14s linear infinite;pointer-events:none}
-    .token{display:inline-flex;width:64px;height:64px;margin:0 10px;justify-content:center;align-items:center;transform-origin:32px 48px}
-    .token:first-child{margin-left:0}
-    .token svg{width:64px;height:64px}
-    .ship{animation:bob 3.2s ease-in-out infinite}
-    .worker{animation:bob 2.2s ease-in-out infinite}
-    .crane{animation:tilt 4s ease-in-out infinite}
-    .summary{background:#102f57;border-radius:18px;padding:18px;box-shadow:0 14px 32px rgba(0,0,0,.32);display:grid;gap:12px;height:fit-content}
-    .summary h3{margin:0;font-size:15px;letter-spacing:.18em;text-transform:uppercase;color:rgba(230,241,255,.7)}
-    .badge{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center;background:#123867;border-radius:14px;padding:12px 14px}
-    .badge .k{font-size:20px;font-weight:700;color:#bcd1f6}
-    .chip{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;background:var(--chip);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:rgba(230,241,255,.85)}
-    .shop{background:#102f57;border-radius:16px;padding:18px;display:grid;gap:14px}
-    .shop h2{margin:0;font-size:16px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-    .item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#0f355f;padding:12px;border-radius:12px}
-    .item h3{margin:0;font-size:16px}
-    .item p{margin:2px 0 0;font-size:13px;opacity:.85}
-    .price{font-weight:800;background:#123867;padding:8px 12px;border-radius:10px}
-    .buy{border:0;border-radius:10px;padding:10px 14px;background:var(--accent);color:#1b160c;font-weight:800;cursor:pointer;box-shadow:0 6px 0 rgba(0,0,0,.25)}
-    .buy[disabled]{opacity:.4;filter:grayscale(40%);cursor:not-allowed;box-shadow:none}
-    .level{opacity:.8;font-size:12px;font-weight:600;margin-left:6px}
-    .row2{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-    .item.locked{background:#0b2850;opacity:.65;filter:grayscale(.2)}
-    .item.locked .price{background:#162f55}
-    .achievement .status{display:inline-flex;align-items:center;justify-content:center;padding:6px 12px;border-radius:12px;background:#123867;font-weight:600;letter-spacing:.04em}
-    .achievement.ready{box-shadow:0 0 0 2px rgba(255,200,0,.35)}
-    .achievement.claimed{opacity:.6}
-    #achList{display:grid;gap:12px;padding:0 22px 22px}
-    .ach-claim{border:0;border-radius:12px;padding:8px 14px;background:linear-gradient(180deg,#ffd964 0%,#ffae00 100%);color:#1b160c;font-weight:700;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.3);text-transform:uppercase;letter-spacing:.08em}
-    .ach-claim:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.3)}
-    .toast{position:fixed; inset:auto 0 env(safe-area-inset-bottom,12px) 0; margin:auto; max-width:520px;
-      background:#123867; color:#e6f1ff; border-radius:14px; padding:12px; box-shadow:0 12px 0 rgba(0,0,0,.35);
-      animation: slideUp .25s ease-out; z-index:2000}
-    @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
-    .toast h4{margin:0 0 6px;font-size:16px}
-    .toast .row{display:flex;gap:8px;justify-content:flex-end}
-    .toast .btn{width:auto;margin:0}
-    #dock.flash{box-shadow:0 0 32px 6px rgba(255,140,0,.45) inset, 0 0 18px rgba(255,140,0,.65); transition:box-shadow .4s}
-    .item.flash{outline:2px solid #ff8c00; box-shadow:0 0 12px #ff8c00; transition:all .4s}
-    .settings{display:grid;gap:12px;background:var(--panel);border-radius:20px;padding:22px;box-shadow:0 16px 34px rgba(0,0,0,.32)}
-    .settings h2{margin:0;font-size:clamp(16px,4vw,20px);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-    .settings label{display:flex;justify-content:space-between;align-items:center;background:#102f57;padding:12px 16px;border-radius:14px;font-size:clamp(14px,3.6vw,16px)}
-    .settings .grid{display:grid;gap:10px}
-    textarea{width:100%;min-height:140px;border-radius:12px;border:1px solid rgba(230,241,255,.25);background:#071a33;color:var(--ink);padding:12px;font-family:monospace}
-    .btn{display:block;width:100%;padding:14px 16px;border-radius:14px;border:0;font-weight:700;font-size:18px;
-      box-shadow:0 12px 0 rgba(0,0,0,.25);cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
-    .btn.secondary{background:#123867;color:var(--ink)}
-    .btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.32)}
-    .btn:disabled{opacity:.55;box-shadow:none;transform:none;cursor:not-allowed}
-    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,7,16,.72);backdrop-filter:blur(4px);padding:16px;z-index:30}
-    .modal.active{display:flex}
-    .modal-content{background:#091b36;border-radius:18px;padding:20px;display:grid;gap:12px;max-width:420px;width:100%}
-    #bottomBar{
-      position:fixed;
-      left:0;right:0;
-      bottom:var(--safe-bottom);
-      background:rgba(4,18,36,.88);
-      backdrop-filter:blur(18px);
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:8px;
-      padding:12px 16px calc(12px + var(--safe-bottom));
-      box-shadow:0 -8px 24px rgba(0,0,0,.45);
-      z-index:40;
-    }
-    .nav-btn{
-      border:0;
-      border-radius:14px;
-      padding:12px 10px;
-      font-weight:700;
-      font-size:clamp(14px,4vw,16px);
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      background:linear-gradient(180deg,#ffb347 0%,var(--accent) 100%);
-      color:#201408;
-      box-shadow:0 10px 0 rgba(0,0,0,.35);
-      cursor:pointer;
-      transition:transform .12s ease,box-shadow .12s ease;
-    }
-    .nav-btn:nth-child(2){background:linear-gradient(180deg,#77a4ff 0%,#2853b5 100%);color:#e6f1ff}
-    .nav-btn:nth-child(3){background:linear-gradient(180deg,#7affd9 0%,#1f8a76 100%);color:#04121f}
-    .nav-btn:active{transform:translateY(3px);box-shadow:0 4px 0 rgba(0,0,0,.35)}
-    #bottomBar button[aria-current="true"]{filter:brightness(1.15)}
+    header,main,footer{width:100%; max-width:1024px; margin-inline:auto; padding-inline:var(--pad);}
+    header,footer{display:flex; justify-content:center; text-align:center; padding-block:18px 12px;}
+    header h1{letter-spacing:.26em; margin:0; font-size:clamp(18px,5vw,30px);}
+    footer{opacity:.7; font-size:clamp(12px,3vw,16px); padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));}
+    main{flex:1; display:grid; gap:clamp(16px,3vw,26px); padding-block:clamp(18px,4vw,32px);}
+
+    .card, details{background:var(--panel); border-radius:var(--radius); box-shadow:0 16px 34px rgba(0,0,0,.32); overflow:hidden;}
+    #hud{display:grid; gap:16px; justify-items:center; text-align:center; padding:clamp(24px,4vw,36px); position:relative;}
+    #contador{font-size:clamp(28px,9vw,46px); font-weight:800;}
+    #jps{opacity:.9; font-size:clamp(14px,4vw,18px);}
+    .meter{width:100%; height:14px; border-radius:999px; background:#112f55; overflow:hidden; position:relative;}
+    .meter>.bar{position:absolute; inset:0; background:linear-gradient(90deg,#ffd964 0%,var(--accent) 100%); width:0%; transition:width .25s ease;}
+    #bonusText{font-size:clamp(12px,3.5vw,15px); letter-spacing:.08em; text-transform:uppercase; color:var(--muted);}
+    #btnBonus{width:min(220px,100%); border:0; border-radius:14px; padding:12px 14px; font-weight:800; font-size:clamp(14px,4vw,16px);
+      text-transform:uppercase; letter-spacing:.06em; background:linear-gradient(180deg,#ffd964 0%,var(--accent) 100%); color:#201408;
+      box-shadow:0 10px 0 rgba(0,0,0,.35); cursor:pointer; transition:transform .12s ease,box-shadow .12s ease;}
+    #btnBonus:disabled{opacity:.6; cursor:not-allowed; box-shadow:none;}
+    #btnBonus:active{transform:translateY(3px); box-shadow:0 4px 0 rgba(0,0,0,.35);}
+
+    #tapBoat{position:relative; border:0; background:none; padding:0; touch-action:manipulation; width:clamp(120px,40vw,240px);
+      aspect-ratio:1; border-radius:50%; background:radial-gradient(circle at 50% 45%,rgba(230,241,255,.18) 0,rgba(11,44,95,.8) 70%,rgba(4,16,35,.85) 100%);
+      box-shadow:0 18px 40px rgba(0,0,0,.45); display:grid; place-items:center; cursor:pointer; animation:bobTap 4s ease-in-out infinite;
+      transition:transform .18s ease;}
+    #tapBoat:focus-visible{outline:3px solid rgba(255,255,255,.6); outline-offset:6px;}
+    #tapBoat svg{width:68%; height:68%; pointer-events:none;}
+    #tapFx{position:absolute; inset:0; pointer-events:none; overflow:visible; z-index:6;}
+    .tapFloat{position:absolute; color:#ffd27a; font-weight:900; font-size:clamp(22px,6vw,38px); letter-spacing:.02em; pointer-events:none;
+      transform:translate(-50%,-18%); animation:floatUp .85s ease-out forwards; text-shadow:0 2px 0 rgba(0,0,0,.65);}
+    @keyframes floatUp{to{transform:translate(-50%,-60px); opacity:0;}}
+    .bolt{position:absolute; width:8px; height:8px; border-radius:2px; background:#FF8C00; box-shadow:0 0 0 1px #0B2C5F inset,0 0 8px rgba(255,140,0,.35);
+      pointer-events:none; transform:translate(0,0) rotate(0deg); opacity:1; animation:boltFly 720ms ease-out forwards;}
+    .bolt.r1{width:6px;height:6px;} .bolt.r2{width:10px;height:10px;border-radius:3px;}
+    @keyframes boltFly{to{transform:translate(var(--dx),calc(-1 * var(--dy))) rotate(var(--rot));opacity:0;}}
     @keyframes bobTap{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-    @keyframes popPitch{0%{transform:rotate(0) scale(1)}70%{transform:rotate(-6deg) scale(.96)}100%{transform:rotate(0) scale(1)}}
-    @keyframes bob{0%{transform:translateY(0) rotate(0)}50%{transform:translateY(-3px) rotate(-.3deg)}100%{transform:translateY(0) rotate(0)}}
-    @keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-1.2deg)}}
-    @keyframes waterShift{from{background-position-x:0}to{background-position-x:-260px}}
+
+    details>summary{padding:18px 22px; font-size:clamp(16px,4.4vw,20px); letter-spacing:.12em; text-transform:uppercase; color:rgba(230,241,255,.85); cursor:pointer; list-style:none;}
+    details>summary::-webkit-details-marker{display:none;}
+    details[open]>summary{border-bottom:1px solid rgba(230,241,255,.12);}
+    .panel-body{padding:clamp(16px,4vw,26px); display:grid; gap:16px;}
+
+    #dock{display:grid; gap:12px;}
+    #dock.flash{box-shadow:0 0 24px rgba(255,140,0,.35); transition:box-shadow .4s;}
+    #dockPanel .lane{display:grid; gap:12px; padding:12px 14px; background:#0f355f; border-radius:14px; box-shadow:inset 0 0 0 1px rgba(230,241,255,.12);}
+    #dockPanel .lane strong{font-size:14px; letter-spacing:.12em; text-transform:uppercase; color:rgba(230,241,255,.7);}
+    #dockPanel .lane .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center; min-height:32px;}
+    .ship,.worker,.crane{width:22px; height:22px; flex:0 0 auto;}
+
+    .shop{background:#102f57; border-radius:16px; padding:18px; display:grid; gap:16px;}
+    .shop h2{margin:0; font-size:16px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted);}
+    .item{display:grid; gap:10px; align-items:center; background:#0f355f; padding:14px; border-radius:14px;}
+    .item h3{margin:0; font-size:16px; display:flex; flex-wrap:wrap; gap:6px; align-items:center;}
+    .item p{margin:4px 0 0; font-size:14px; opacity:.85;}
+    .row2{display:flex; gap:12px; align-items:center; justify-content:space-between; flex-wrap:wrap;}
+    .price{font-weight:800; background:#123867; padding:8px 12px; border-radius:12px;}
+    .buy{border:0; border-radius:12px; padding:10px 16px; background:linear-gradient(180deg,#ffb347 0%,var(--accent) 100%); color:#1b160c;
+      font-weight:800; cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,.25); transition:transform .12s ease,box-shadow .12s ease;}
+    .buy:active{transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.25);} .buy[disabled]{opacity:.4; box-shadow:none; cursor:not-allowed;}
+    .item.locked{background:#0b2850; opacity:.65; filter:grayscale(.15);} .item.locked .price{background:#162f55;}
+    .level{font-size:13px; font-weight:700; opacity:.8;}
+
+    #achList{display:grid; gap:12px;}
+    .ach{display:grid; grid-template-columns:1fr auto; gap:8px; align-items:center; background:#0f355f; padding:12px; border-radius:12px;}
+    .ach .state{font-weight:800; padding:6px 12px; border-radius:12px; background:#123867; letter-spacing:.04em;}
+    .ach.locked{opacity:.6;} .ach .desc{opacity:.85; font-size:13px; margin-top:4px;}
+
+    .toast{position:fixed; inset:auto 12px calc(12px + env(safe-area-inset-bottom,12px)) 12px; margin:auto; max-width:520px; background:#123867;
+      color:#e6f1ff; border-radius:14px; padding:12px; box-shadow:0 12px 0 rgba(0,0,0,.35); animation:slideUp .25s ease-out; z-index:2000;}
+    @keyframes slideUp{from{transform:translateY(16px);opacity:0}to{transform:translateY(0);opacity:1}}
+    .toast h4{margin:0 0 6px; font-size:16px;} .toast .row{display:flex; gap:8px; justify-content:flex-end;}
+    .toast .btn{width:auto; margin:0; background:#123867; color:var(--ink);}
+
+    .btn{display:block; width:100%; padding:14px 16px; border-radius:14px; border:0; font-weight:700; font-size:18px;
+      box-shadow:0 12px 0 rgba(0,0,0,.25); cursor:pointer; transition:transform .12s ease,box-shadow .12s ease;}
+    .btn:active{transform:translateY(3px); box-shadow:0 4px 0 rgba(0,0,0,.32);} .btn:disabled{opacity:.55; box-shadow:none; cursor:not-allowed;}
+
+    #bottomBar{position:sticky; bottom:0; left:0; right:0; display:flex; gap:12px; padding:12px env(safe-area-inset-right,16px) calc(12px + env(safe-area-inset-bottom,8px)) env(safe-area-inset-left,16px);
+      background:rgba(4,18,36,.9); backdrop-filter:blur(18px); box-shadow:0 -8px 24px rgba(0,0,0,.45); z-index:40;}
+    #bottomBar .btn{flex:1; min-height:48px; border-radius:16px; font-size:clamp(14px,4vw,16px); text-transform:uppercase; letter-spacing:.08em;}
+    #bottomBar button[aria-current="true"]{filter:brightness(1.15);}
+
     @media (min-width:768px){
-      body{padding-bottom:calc(96px + var(--safe-bottom));}
-      main{padding:24px 24px 32px;gap:24px}
-      #hud{grid-template-columns:repeat(2,1fr);align-items:center;text-align:left;justify-items:flex-start;padding:32px}
-      #hud .meter{grid-column:1/3}
-      #hud #bonusText{grid-column:1/3;text-align:center}
-      #tapBoat{justify-self:center}
-      #darsenaWrap{grid-template-columns:minmax(0,2fr) minmax(200px,1fr)}
-      #bottomBar{grid-template-columns:repeat(3,minmax(0,180px));justify-content:center;padding-left:48px;padding-right:48px}
+      main{grid-template-columns:minmax(0,1fr);}
+      #hud{grid-template-columns:repeat(2,minmax(0,1fr)); align-items:center; text-align:left; justify-items:flex-start;}
+      #hud .meter,#hud #bonusText{grid-column:1/3;}
+      #tapBoat{justify-self:center;}
+      #dockPanel .lane{grid-template-columns:220px 1fr; align-items:center;}
     }
+
+    @media (max-width:480px){
+      header h1{font-size:clamp(18px,6vw,24px);} #hud #contador{font-size:clamp(26px,10vw,40px);} #hud #jps{font-size:clamp(14px,4.5vw,16px);}
+    }
+
     @media (prefers-reduced-motion:reduce){
-      *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}
+      *,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
     }
-    #muteBtn{position:absolute;right:10px;top:10px;border:0;background:#123867;color:#e6f1ff;padding:8px 10px;border-radius:10px;font-weight:700}
-    details.panel{background:#0b2c5f;border-radius:14px;padding:12px;box-shadow:0 8px 0 rgba(0,0,0,.25);margin:14px 0}
-    details.panel>summary{cursor:pointer;list-style:none;font-weight:800}
-    #achList .ach{display:grid;grid-template-columns:1fr auto;gap:8px;background:#0f355f;padding:10px;border-radius:12px;margin:8px 0}
-    .ach .state{font-weight:800;padding:6px 10px;border-radius:10px;background:#123867}
-    .ach.locked{opacity:.6}
-    .ach .desc{opacity:.9;font-size:13px;margin-top:4px}
-    .controls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-    textarea#exportBox{width:100%;min-height:110px;border-radius:10px;border:0;padding:8px;background:#0f355f;color:#e6f1ff}
-    .ok{background:#2d7a46}
-    .warn{background:#8a5c0a}
   </style>
 </head>
 <body>
   <header><h1>Varadero Mosquera</h1></header>
   <main>
     <section class="card" id="hud">
-      <button id="muteBtn" aria-pressed="false">🔊</button>
       <div id="contador" aria-live="polite">0</div>
       <div id="jps">0 Jornales/s</div>
       <button id="tapBoat" aria-label="Remachar casco" type="button">
@@ -245,39 +130,25 @@
       </button>
       <div class="meter" aria-hidden="true"><div class="bar" id="bonusBar"></div></div>
       <div id="bonusText">Marea viva lista</div>
-      <button id="btnBonus" type="button" class="btn secondary" style="max-width:220px;margin-top:8px">Marea viva</button>
+      <button id="btnBonus" type="button">Marea viva</button>
     </section>
 
-    <details id="dockPanel">
+    <details id="dockPanel" open>
       <summary>Dársena</summary>
       <div class="panel-body">
-        <div id="darsenaWrap">
-          <section id="darsena" aria-labelledby="dock-title">
-            <h3 id="dock-title" style="position:absolute;left:-9999px;top:auto">Estado visual del astillero</h3>
-            <div class="dock" id="dock">
-              <div class="row" id="row-barcos" role="group" aria-label="Barcos en reparación">
-                <span class="label-row">Barcos en reparación</span>
-                <div class="water" aria-hidden="true"></div>
-                <div class="tokens" role="list"></div>
-              </div>
-              <div class="row" id="row-obreros" role="group" aria-label="Aprendices en el muelle">
-                <span class="label-row">Aprendices</span>
-                <div class="water" aria-hidden="true"></div>
-                <div class="tokens" role="list"></div>
-              </div>
-              <div class="row" id="row-gruas" role="group" aria-label="Grúas y equipo">
-                <span class="label-row">Grúas y equipo</span>
-                <div class="water" aria-hidden="true"></div>
-                <div class="tokens" role="list"></div>
-              </div>
-            </div>
-          </section>
-          <aside class="summary" aria-labelledby="summary-title">
-            <h3 id="summary-title">Resumen del astillero</h3>
-            <div class="badge"><span>Barcos</span><span class="k" id="sum-barcos">0</span></div>
-            <div class="badge"><span>Obreros</span><span class="k" id="sum-obreros">0</span></div>
-            <div class="badge"><span>Grúas</span><span class="k" id="sum-gruas">0</span></div>
-          </aside>
+        <div id="dock">
+          <div class="lane">
+            <strong>Barcos en reparación</strong>
+            <div class="row" id="dockShips" aria-live="polite"></div>
+          </div>
+          <div class="lane">
+            <strong>Aprendices</strong>
+            <div class="row" id="dockWorkers" aria-live="polite"></div>
+          </div>
+          <div class="lane">
+            <strong>Grúas y equipo</strong>
+            <div class="row" id="dockCranes" aria-live="polite"></div>
+          </div>
         </div>
       </div>
     </details>
@@ -292,26 +163,25 @@
       </div>
     </details>
 
-    <details class="panel" id="achPanel">
+    <details id="achPanel">
       <summary>Logros <span id="achCount" style="opacity:.8"></span></summary>
       <div class="panel-body">
         <div id="achList" aria-live="polite"></div>
-
         <h3 style="margin:12px 0 0">Exportar / Importar progreso</h3>
-        <div class="controls">
-          <button id="btnExport" class="btn ok" type="button">Exportar</button>
-          <button id="btnImport" class="btn warn" type="button">Importar</button>
+        <div class="controls" style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button id="btnExport" class="btn" type="button">Exportar</button>
+          <button id="btnImport" class="btn" type="button">Importar</button>
         </div>
-        <textarea id="exportBox" placeholder="Aquí verás el JSON al exportar o pega aquí para importar"></textarea>
+        <textarea id="exportBox" style="width:100%;min-height:140px;border-radius:12px;border:1px solid rgba(230,241,255,.25);background:#071a33;color:var(--ink);padding:12px;font-family:monospace" placeholder="Aquí verás el JSON al exportar o pega aquí para importar"></textarea>
       </div>
     </details>
   </main>
-  <footer>v1.2.0 — Visor de logros y mejoras</footer>
+  <footer>v1.3.0 — Astillero en movimiento</footer>
 
   <nav id="bottomBar" aria-label="Acciones principales">
-    <button type="button" class="nav-btn" id="nav-bonus">Marea viva</button>
-    <button type="button" class="nav-btn" id="nav-shop">Tiendas</button>
-    <button type="button" class="nav-btn" id="nav-ach">Logros</button>
+    <button type="button" class="btn" id="nav-dock">DÁRSENA</button>
+    <button type="button" class="btn" id="nav-shop">TIENDAS</button>
+    <button type="button" class="btn" id="nav-ach">LOGROS</button>
   </nav>
 
   <svg id="sprite-defs" width="0" height="0" aria-hidden="true" style="position:absolute">
@@ -351,10 +221,10 @@
   </svg>
 
   <div id="popupRoot" aria-live="polite" aria-atomic="true"></div>
-  <script type="module" src="/src/main.js?v=20"></script>
+  <script type="module" src="/src/main.js?v=21"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js?v=20').catch(()=>{});
+      navigator.serviceWorker.register('/sw.js?v=21').catch(()=>{});
     }
   </script>
 </body>

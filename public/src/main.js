@@ -26,7 +26,7 @@ export function doTap(){
   state.achievements.progress.taps++;
   state.achievements.progress.totalJornales = (state.achievements.progress.totalJornales||0) + gain;
   if (state.settings.audio) audio.playTap();
-  ui.renderHUD(state); ui.updateShop(state);
+  ui.renderHUD(state); ui.updateShop(state); ui.renderDock(state);
   save.save(state);
   return gain;
 }
@@ -36,6 +36,7 @@ export function toggleBonus(){
     state.bonus.active = true;
     state.bonus.remaining = state.bonus.duration;
     state.bonus.cooldown = state.bonus.cooldownMax + state.bonus.duration;
+    if (state.settings.audio) audio.startTide();
     ui.renderHUD(state);
     save.save(state);
   }
@@ -51,7 +52,7 @@ export function buyUpgrade(id){
     state.achievements.progress.compras++;
     if (state.settings.audio) audio.playUpgrade();
     ui.flashShopItem?.(id);
-    ui.renderHUD(state); ui.updateShop(state);
+    ui.renderHUD(state); ui.updateShop(state); ui.renderDock(state);
     save.save(state);
   }
 }
@@ -67,7 +68,13 @@ export function getTotalsForVisuals(s){
 let prev=performance.now();
 function frame(now){
   const dt=now-prev; prev=now;
-  if (state.bonus.active){ state.bonus.remaining-=dt; if (state.bonus.remaining<=0){ state.bonus.active=false; state.bonus.remaining=0; } }
+  if (state.bonus.active){
+    state.bonus.remaining-=dt;
+    if (state.bonus.remaining<=0){
+      state.bonus.active=false; state.bonus.remaining=0;
+      if (state.settings.audio) audio.stopTide();
+    }
+  }
   if (state.bonus.cooldown>0){ state.bonus.cooldown-=dt; if (state.bonus.cooldown<0) state.bonus.cooldown=0; }
 
   const mult=(state.bonus.active?state.bonus.multiplier:1)*(state.bonus.permaMult||1);
@@ -76,7 +83,6 @@ function frame(now){
   state.achievements.progress.totalJornales += state.jornalesPerSec*(dt/1000);
   state.achievements.progress.maxJps = Math.max(state.achievements.progress.maxJps||0, state.jornalesPerSec||0);
 
-  // Barcos para logros + notificación de barco nuevo
   const t = getTotalsForVisuals(state);
   const sig = `${t.barcos}|${t.obreros}|${t.gruas}`;
   if (sig !== _lastShipSig){
@@ -86,7 +92,6 @@ function frame(now){
   }
   state.achievements.progress.barcos = t.barcos;
 
-  // Logros: toast cuando pase a conseguido
   for(const ach of achievementsDef){
     const already = !!state.achievements.claimed[ach.id];
     if (!already && isAchieved(state, ach)){
@@ -98,15 +103,15 @@ function frame(now){
   if (document.getElementById('achPanel')?.open){
     ui.renderAchievements?.(state);
   }
-  ui.renderHUD(state); ui.updateShop(state);
+  ui.renderHUD(state); ui.updateShop(state); ui.renderDock(state);
   save.save(state);
   requestAnimationFrame(frame);
 }
 
 window.addEventListener('DOMContentLoaded', ()=>{
   ui.initUI(); ui.buildShop();
-  ui.renderHUD(state); ui.updateShop(state); ui.renderAchievements(state);
+  ui.renderHUD(state); ui.updateShop(state); ui.renderDock(state); ui.renderAchievements(state);
   requestAnimationFrame(frame);
 });
 
-Object.assign(window.Astillero,{ doTap, buyUpgrade, toggleBonus });
+Object.assign(window.Astillero,{ doTap, buyUpgrade, toggleBonus, getTotalsForVisuals });
