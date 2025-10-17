@@ -93,6 +93,7 @@ export function getTotalsForVisuals(s){
 }
 
 let prev=performance.now();
+let _prevCooldown=0;
 function frame(now){
   const dt=now-prev; prev=now;
   if (state.bonus.active){
@@ -103,6 +104,11 @@ function frame(now){
     }
   }
   if (state.bonus.cooldown>0){ state.bonus.cooldown-=dt; if (state.bonus.cooldown<0) state.bonus.cooldown=0; }
+
+  if (_prevCooldown>0 && state.bonus.cooldown===0 && !state.bonus.active){
+    if (state.settings.audio) audio.playTideReady?.();
+  }
+  _prevCooldown=state.bonus.cooldown;
 
   const mult=(state.bonus.active?state.bonus.multiplier:1)*(state.bonus.permaMult||1);
   state.jornalesPerSec=Number(jpsTotal(state))*mult||0;
