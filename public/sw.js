@@ -1,4 +1,4 @@
-const CACHE_NAME = 'varadero-mosquera-v20';
+const CACHE_NAME = 'varadero-mosquera-v21';
 const ASSETS = ['/', '/index.html', '/manifest.webmanifest',
   '/src/main.js', '/src/ui.js', '/src/balance.js', '/src/audio.js', '/src/save.js'
 ];
