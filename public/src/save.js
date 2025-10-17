@@ -29,6 +29,10 @@ export function importGame(text, defaultState){
   return normalized;
 }
 
+export function wipe(){
+  try{ localStorage.removeItem(KEY); }catch{}
+}
+
 function normalizeState(data, defaults={}){
   const base = {
     ...structuredCloneSafe(defaults),

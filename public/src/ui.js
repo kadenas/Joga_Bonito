@@ -1,10 +1,12 @@
 import { buyUpgrade, doTap, toggleBonus } from './main.js';
 import { upgradesDef, costeSiguiente, getUpgradeLevel, achievementsDef } from './balance.js';
 import * as audio from './audio.js';
+import * as save from './save.js';
 
 let $contador,$jps,$bonusBar,$bonusText,$tapBoat,$tapFx,$popupRoot;
 let $btnBonus,$navDock,$navShop,$navAch,$dockPanel,$shopPanel,$achPanel,$dockShips,$dockWorkers,$dockCranes;
 let $shopList,$achList,$achCount,$dock;
+let $muteBtn,$resetBtn;
 const shopNodes = new Map();
 let _lastPointerTs = 0;
 
@@ -16,6 +18,8 @@ export function initUI(){
   $tapBoat   = document.getElementById('tapBoat')   || $tapBoat;
   $tapFx     = document.getElementById('tapFx')     || $tapFx;
   $popupRoot = document.getElementById('popupRoot') || $popupRoot;
+  $muteBtn   = document.getElementById('muteBtn')   || $muteBtn;
+  $resetBtn  = document.getElementById('btnReset')  || $resetBtn;
   $btnBonus  = document.getElementById('btnBonus')  || $btnBonus;
 
   $dockPanel = document.getElementById('dockPanel') || $dockPanel;
@@ -38,6 +42,40 @@ export function initUI(){
   wireBonusButton();
   wireBottomNav();
   syncNavWithPanels();
+}
+
+export function hookHudButtons(){
+  initUI();
+  const syncMute = ()=>{
+    if(!$muteBtn) return;
+    const on = !!window.Astillero?.state?.settings?.audio;
+    $muteBtn.setAttribute('aria-pressed', String(!on));
+    $muteBtn.textContent = on ? '🔊' : '🔇';
+  };
+  syncMute();
+
+  if ($muteBtn && !$muteBtn.__wired){
+    $muteBtn.addEventListener('click', ()=>{
+      const st = window.Astillero?.state;
+      if (!st) return;
+      st.settings.audio = !st.settings.audio;
+      audio.setEnabled(st.settings.audio);
+      save.save(st);
+      syncMute();
+    });
+    $muteBtn.__wired = true;
+  }
+
+  if ($resetBtn && !$resetBtn.__wired){
+    $resetBtn.addEventListener('click', ()=>{
+      const ok = confirm('¿Seguro que quieres reiniciar la partida? Se perderá el progreso.');
+      if (!ok) return;
+      window.Astillero?.resetGame?.();
+      syncMute();
+      alert('Guardado eliminado. Empezamos de cero.');
+    });
+    $resetBtn.__wired = true;
+  }
 }
 
 function wireTapBoat(){
